@@ -12,11 +12,11 @@ scatter_plotly(
   sigCol = "red",
   xlab = NULL,
   ylab = NULL,
-  yzero = TRUE,
+  yzero = (loc$yvar == "logP"),
   showLD = TRUE,
   LD_scheme = c("grey", "royalblue", "cyan2", "green3", "orange", "red", "purple"),
   marker_outline = "black",
-  marker_size = 50
+  marker_size = 7
 )
 }
 \arguments{

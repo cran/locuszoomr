@@ -18,7 +18,6 @@
 #' @seealso [genetrack_ly()] [locus()]
 #' @examples
 #' if(require(EnsDb.Hsapiens.v75)) {
-#' library(EnsDb.Hsapiens.v75)
 #' data(SLE_gwas_sub)
 #' loc <- locus(SLE_gwas_sub, gene = "IRF5", flank = c(7e4, 2e5), LD = "r2",
 #'              ens_db = "EnsDb.Hsapiens.v75")
@@ -30,6 +29,6 @@ locus_plotly <- function(loc, heights = c(0.6, 0.4), ...) {
   g <- genetrack_ly(loc, ...)
   p <- scatter_plotly(loc)
   
-  plotly::subplot(p, g, shareX = T, nrows = 2, heights = c(0.6, 0.4),
+  plotly::subplot(p, g, shareX = TRUE, nrows = 2, heights = c(0.6, 0.4),
                   titleY = TRUE)
 }

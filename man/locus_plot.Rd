@@ -73,8 +73,8 @@ lower plots.}
 \item{text_pos}{Character value of either 'top' or 'left' specifying
 placement of gene name labels.}
 
-\item{...}{Other arguments passed to \code{\link[=scatter_plot]{scatter_plot()}} to control the scatter
-plot.}
+\item{...}{Other arguments passed to \code{\link[=scatter_plot]{scatter_plot()}} and \code{\link[=plot]{plot()}} to control
+the scatter plot, e.g. \code{ylab}, \code{main}, etc.}
 }
 \value{
 No return value.
@@ -88,10 +88,14 @@ plots of gene loci. It references Ensembl databases for annotating genes
 and exons. Use \code{\link[=locus]{locus()}} first to generate an object of class 'locus' for
 plotting. LDlink web server can be queried using function \code{\link[=link_LD]{link_LD()}} to
 retrieve linkage disequilibrium (LD) information on the index SNP.
+
+Arguments to control plotting of the gene tracks are passed onto
+\code{\link[=genetracks]{genetracks()}} and for the scatter plot are passed via \code{...} to
+\code{\link[=scatter_plot]{scatter_plot()}}. See the documentation for each of these functions for
+details.
 }
 \examples{
 if(require(EnsDb.Hsapiens.v75)) {
-library(EnsDb.Hsapiens.v75)
 data(SLE_gwas_sub)
 loc <- locus(SLE_gwas_sub, gene = 'UBE2L3', flank = 1e5,
              ens_db = "EnsDb.Hsapiens.v75")
@@ -100,7 +104,8 @@ locus_plot(loc)
 ## Use embedded LD information in column `r2`
 loc2 <- locus(SLE_gwas_sub, gene = 'IRF5', flank = c(7e4, 2e5), LD = "r2",
               ens_db = "EnsDb.Hsapiens.v75")
-locus_plot(loc2)
+## Add label for index SNP
+locus_plot(loc2, labels = "index")
 }
 }
 \seealso{

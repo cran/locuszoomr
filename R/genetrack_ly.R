@@ -20,7 +20,6 @@
 #' @return A 'plotly' plotting object showing gene tracks.
 #' @examples
 #' if(require(EnsDb.Hsapiens.v75)) {
-#' library(EnsDb.Hsapiens.v75)
 #' data(SLE_gwas_sub)
 #' loc <- locus(SLE_gwas_sub, gene = 'UBE2L3', flank = 1e5,
 #'              ens_db = "EnsDb.Hsapiens.v75")
@@ -81,7 +80,9 @@ genetrack_ly <- function(locus,
   xlim <- xlim + c(-xext, xext)
   tfilter <- TX$tmin > (xrange[1] - diff(xrange) * 0.04) & 
              (TX$tmax < xrange[2] + diff(xrange) * 0.04)
-  TX$gene_name2 <- TX$gene_name
+  pos <- TX$strand == "+"
+  TX$gene_name2[pos] <- paste0(TX$gene_name[pos], "&#8594;")
+  TX$gene_name2[!pos] <- paste0("&#8592;", TX$gene_name[!pos])
   TX$gene_name2[!tfilter] <- NA
   
   hovertext <- paste0(TX$gene_name,
@@ -97,7 +98,7 @@ genetrack_ly <- function(locus,
                  text = hovertext, hoverinfo = 'text',
                  showlegend = FALSE) %>%
     add_text(x = ~tx, y = ~ty, text = ~gene_name2,
-             textfont = list(size = 15 * cex.text),
+             textfont = list(size = 14 * cex.text),
              showlegend = FALSE, hoverinfo = 'none') %>%
     plotly::layout(shapes = shapes,
                    xaxis = list(title = xlab, showgrid = FALSE, showline = TRUE,

@@ -29,7 +29,6 @@
 #' @seealso [locus()] [gg_addgenes()]
 #' @examples
 #' if(require(EnsDb.Hsapiens.v75)) {
-#' library(EnsDb.Hsapiens.v75)
 #' data(SLE_gwas_sub)
 #' loc <- locus(SLE_gwas_sub, gene = 'IRF5', flank = c(7e4, 2e5), LD = "r2",
 #'              ens_db = "EnsDb.Hsapiens.v75")
@@ -50,7 +49,7 @@ gg_scatter <- function(loc,
                        cex.lab = 1,
                        xlab = NULL,
                        ylab = NULL,
-                       yzero = TRUE,
+                       yzero = (loc$yvar == "logP"),
                        xticks = TRUE,
                        border = FALSE,
                        showLD = TRUE,
@@ -107,7 +106,7 @@ gg_scatter <- function(loc,
     } else legend.position = "none"
   } else legend.position = "none"
   yrange <- range(data[, loc$yvar], na.rm = TRUE)
-  yrange[1] <- if (yzero) min(c(0, yrange[1]))
+  if (yzero) yrange[1] <- min(c(0, yrange[1]))
   ycut <- -log10(pcutoff)
   
   p <- ggplot(data, aes(x = .data[[loc$pos]], y = .data[[loc$yvar]], color = .data$col,

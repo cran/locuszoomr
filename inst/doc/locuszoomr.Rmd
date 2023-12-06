@@ -25,18 +25,20 @@ library(locuszoomr)
 # Introduction
 
 The `locuszoomr` package allows users to produce publication ready gene locus 
-plots very similar to those produced by the web interface locuszoom 
-(http://locuszoom.org), but running purely locally in R. It provides 
-customisation to the plots.
+plots very similar to those produced by the web interface 'locuszoom' 
+(http://locuszoom.org), but running purely locally in R. Plots can easily be 
+customised.
 
-These gene annotation plots are produced via R base graphics system. A ggplot2
-version is also available.
+These gene annotation plots are produced via R base graphics system. 'ggplot2'
+and 'plotly' versions can also be generated.
 
 # Installation
 
 Bioconductor packages `ensembldb` and an Ensembl database installed either as a
 package or obtained through Bioconductor packages `AnnotationHub` are required
-before installation.
+before installation. To run the examples in this vignette the
+'EnsDb.Hsapiens.v75' ensembl database package needs to be installed from
+Bioconductor.
 
 ```{r eval = FALSE}
 if (!requireNamespace("BiocManager", quietly = TRUE))
@@ -80,18 +82,19 @@ head(SLE_gwas_sub)
 We plot a locus from this dataset by extracting a subset of the data using the
 `locus()` function. Make sure you load the correct Ensembl database.
 
-```{r warning=FALSE, message=FALSE, fig.dim=c(8, 7)}
-library(EnsDb.Hsapiens.v75)
+```{r, message=FALSE, fig.dim=c(8, 7)}
+if (require(EnsDb.Hsapiens.v75)) {
 loc <- locus(SLE_gwas_sub, gene = 'UBE2L3', flank = 1e5,
              ens_db = "EnsDb.Hsapiens.v75")
 summary(loc)
 locus_plot(loc)
+}
 ```
 
 When `locus()` is called, the function tries to autodetect which columns in the
 data object refer to chromosome, position, SNP/feature ID and p-value. These
-columns can be specified manually using the arguments `chrom`, `pos`, `labs` and
-`p` respectively.
+columns may need to be specified manually using the arguments `chrom`, `pos`,
+`labs` and `p` respectively.
 
 # Accessing Ensembl databases
 
@@ -151,15 +154,15 @@ either be controlled by specifying `flank` which defaults to 50kb either side of
 the ends of the gene. `flank` can either be a single number or a vector of 2
 numbers if different down/upstream flanking lengths are required. Alternatively
 a fixed genomic window (eg. 1 Mb) centred on the gene of interest can be
-specified using the argument `fix_window`. The locus can be specified manually
-by specifying chromosome using `seqname` and genomic position range using
-`xrange`.
+specified using the argument `fix_window`. Finally, the locus can be specified
+manually by specifying the chromosome using `seqname` and genomic position range
+using `xrange`.
 
 # Obtaining LD information
 
 Once an API personal access token has been obtained, the
 [LDlink](https://ldlink.nih.gov/?tab=home) API can be called using the function
-`link_LD()` to retrieve LD (linkage disequilibium) information at the locus
+`link_LD()` to retrieve LD (linkage disequilibrium) information at the locus
 which is overlaid on the locus plot. This is shown as a colour overlay showing
 the level of $r^2$ between SNPs and the index SNP which defaults to the SNP with
 the lowest p-value (or the SNP can be specified manually).
@@ -181,30 +184,46 @@ acquired from LDlink which is included in the `r2` column. This can be plotted
 by setting `LD = "r2"`. This method also allows users to add their own LD
 information from their own datasets to loci.
 
-```{r fig.dim=c(8, 7)}
+```{r, fig.dim=c(8, 7)}
+if (require(EnsDb.Hsapiens.v75)) {
 loc <- locus(SLE_gwas_sub, gene = 'UBE2L3', flank = 1e5, LD = "r2",
              ens_db = "EnsDb.Hsapiens.v75")
-locus_plot(loc, labels = c("index", "rs5754467"))
+locus_plot(loc, labels = c("index", "rs140492"),
+                label_x = c(4, -5))
+}
 ```
 
-# Plot customisation
+# Customise plots and labels
 
 Various plotting options can be customised through arguments via the call to
-`locus_plot()`. Plot borders can be set using `border = TRUE`. The chromosome 
+`locus_plot()`. When calling `locus_plot()` arguments are passed to either
+`genetracks()` to control the gene tracks or passed via the `...` system onto
+`scatter_plot()` to control the scatter plot.
+
+Plot borders can be set using `border = TRUE`. The chromosome 
 position $x$ axis labels can be placed under the top or bottom plots using 
 `xtick = "top"` or `"bottom"`.
 
+Additional arguments can also be passed onto `plot()` via the `...` system, e.g.
+`ylim`, `par()` settings etc. For example `col = NA` can be added to
+`locus_plot()` or `scatter_plot()` to remove the black outline around the
+scatter plot markers.
+
 Labels can be added by specifying a vector of SNP or genomic feature IDs as
-shown in the plot above. The value `"index"` refers to the index SNP as the
-highest point in the locus or as defined by the argument `index_snp` when
-`locus()` is called.
+shown in the plot above using the argument `labels` (see `scatter_plot()`). The
+value `"index"` refers to the index SNP as the highest point in the locus or as
+defined by the argument `index_snp` when `locus()` is called. The easiest way to
+identify points is using the [plotly version](#plotly-version) `locus_plotly()`
+which allows you to hover over points and see their rsid or feature label.
+`label_x` and `label_y` control the position of the labels and can be specified
+as a single value or a vector of values.
 
-See the help page at `?locus_plot` for more details.
+See the help pages at `?locus_plot` and `?scatter_plot` for more details.
 
-# Customising gene tracks
+# Customise gene tracks
 
 The gene tracks can be also customised with colours and gene label text
-position. See the help page at `?plot.locus` for more details.
+position. See the help page at `?genetracks` and `?locus_plot` for more details.
 
 ```{r eval = FALSE}
 # Filter by gene biotype
@@ -218,23 +237,29 @@ locus_plot(loc, filter_gene_name = c('UBE2L3', 'RIMBP3C', 'YDJC', 'PPIL2',
 # Plot gene annotation only
 
 The gene track can be plotted from a `locus` class object using the function 
-`genetrack()`. This uses base graphics, so `layout()` can be used to stack 
-custom-made plots above or below the gene tracks.
+`genetracks()`. This uses base graphics, so `layout()` can be used to stack 
+custom-made plots above or below the gene tracks. The function `set_layers()` is
+designed to make this easier for users. See section [Layering
+plots](#layering-plots) below.
 
-```{r fig.dim=c(7, 3.5)}
+```{r, fig.dim=c(7, 3.5)}
+if (require(EnsDb.Hsapiens.v75)) {
 genetracks(loc)
+}
 ```
 
 The function allows control over plotting of the gene tracks such as changing
 the number of gene annotation tracks and the colour scheme. Set
 `showExons=FALSE` to show only genes and hide the exons.
 
-```{r fig.dim=c(7, 2.5)}
+```{r, fig.dim=c(7, 2.5)}
+if (require(EnsDb.Hsapiens.v75)) {
 # Limit the number of tracks
 # Filter by gene biotype
 # Customise colours
 genetracks(loc, maxrows = 3, filter_gene_biotype = 'protein_coding',
            gene_col = 'grey', exon_col = 'orange', exon_border = 'darkgrey')
+}
 ```
 
 # Add eQTL data via LDlink
@@ -292,10 +317,12 @@ knitr::include_graphics("eqtl_overlay.png")
 Instead of plotting -log~10~ p-value on the y axis, it is possible to specify a
 different variable in your dataset using the argument `yvar`.
 
-```{r fig.dim=c(8, 7)}
+```{r, fig.dim=c(8, 7)}
+if (require(EnsDb.Hsapiens.v75)) {
 locb <- locus(SLE_gwas_sub, gene = 'UBE2L3', flank = 1e5, yvar = "beta",
               ens_db = "EnsDb.Hsapiens.v75")
 locus_plot(locb)
+}
 ```
 
 # Arrange multiple locus plots
@@ -344,6 +371,7 @@ dev.off()
 ```
 
 ```{r, echo=FALSE, message=FALSE, fig.dim = c(9,5)}
+if (require(EnsDb.Hsapiens.v75)) {
 loc2 <- locus(SLE_gwas_sub, gene = 'IRF5', flank = c(7e4, 2e5), LD = "r2",
               ens_db = "EnsDb.Hsapiens.v75")
 loc3 <- locus(SLE_gwas_sub, gene = 'STAT4', flank = 1e5, LD = "r2",
@@ -356,6 +384,7 @@ multi_layout(ncol = 3,
                locus_plot(loc3, use_layout = FALSE, legend_pos = NULL,
                           labels = "index")
              })
+}
 ```
 
 # Layering plots
@@ -364,9 +393,13 @@ multi_layout(ncol = 3,
 
 `locuszoomr` has been designed with modular functions to enable layering of
 plots on top of each other in a column with gene tracks on the bottom.
+`set_layers()` is used to set layout of plots in base graphics by calling
+`layout()`. You will need to reset `par()` to original layout settings once the
+multi-panel plot is finished.
+
 `scatter_plot()` is used to generate the locus plot. `line_plot()` is used as an
 example of an additional plot. Also see `eqtl_plot()` for plotting eQTL
-information retrieved via LDlinkR.
+information retrieved via the LDlinkR package.
 
 ```{r eval=FALSE}
 pdf("myplot2.pdf", width = 6, height = 8)
@@ -380,11 +413,13 @@ dev.off()
 ```
 
 ```{r, echo=FALSE, fig.dim = c(6,8)}
+if (require(EnsDb.Hsapiens.v75)) {
 oldpar <- set_layers(2)
 scatter_plot(loc, xticks = FALSE)
 line_plot(loc, col = "orange", xticks = FALSE)
 genetracks(loc)
 par(oldpar)
+}
 ```
 
 ## Overlaid plots
@@ -392,35 +427,21 @@ par(oldpar)
 `scatter_plot()` can be called with argument `add = TRUE` to add multiple sets
 of points overlaid on one plot.
 
-```{r, eval=FALSE}
-dat <- SLE_gwas_sub
-dat$p2 <- -log10(dat$p * 0.1)
-locp <- locus(dat, gene = 'UBE2L3', flank = 1e5)
-locp2 <- locus(dat, gene = 'UBE2L3', flank = 1e5, yvar = "p2")
-
-# set up overlaid plot with 1 plot & a gene track; store old par() settings
-oldpar <- set_layers(1)
-scatter_plot(locp, xticks = FALSE, pcutoff = NULL, ylim = c(0, 16))
-scatter_plot(locp2, xticks = FALSE, pcutoff = NULL, chromCol = "orange",
-             pch = 22, add = TRUE)
-genetracks(loc)
-par(oldpar)  # revert par() settings
-```
-
-```{r, echo=FALSE, message=FALSE, fig.dim = c(7,7)}
+```{r, message=FALSE, fig.dim = c(7,7)}
+if (require(EnsDb.Hsapiens.v75)) {
 dat <- SLE_gwas_sub
 dat$p2 <- -log10(dat$p * 0.1)
 locp <- locus(dat, gene = 'UBE2L3', flank = 1e5, ens_db = "EnsDb.Hsapiens.v75")
 locp2 <- locus(dat, gene = 'UBE2L3', flank = 1e5, yvar = "p2",
                ens_db = "EnsDb.Hsapiens.v75")
 
-# set up overlaid plot with 1 plot & a gene track; store old par() settings
 oldpar <- set_layers(1)
 scatter_plot(locp, xticks = FALSE, pcutoff = NULL, ylim = c(0, 16))
 scatter_plot(locp2, xticks = FALSE, pcutoff = NULL, chromCol = "orange",
              pch = 22, add = TRUE)
 genetracks(loc)
-par(oldpar)  # revert par() settings
+par(oldpar)
+}
 ```
 
 # Add custom legend / features
@@ -432,7 +453,8 @@ demarcate a gene and extra points on top or underneath the main plot. When
 `panel.first` and `panel.last`. Since these are called inside the `locus_plot()`
 function they need to be quoted using `quote()`.
 
-```{r, message=FALSE, fig.dim = c(7,7)}
+```{r, fig.dim = c(7,7)}
+if (require(EnsDb.Hsapiens.v75)) {
 # add vertical lines for gene of interest under the main plot
 pf <- quote({
   v <- locp$TX[locp$TX$gene_name == "UBE2L3", c("start", "end")]
@@ -454,6 +476,7 @@ pl <- quote({
 })
 
 locus_plot(locp, pcutoff = NULL, panel.first = pf, panel.last = pl)
+}
 ```
 
 # ggplot2 version
@@ -496,10 +519,12 @@ It is possible to use either the `cowplot` or `ggpubr` packages to layout
 multiple locus ggplots on the same page.
 
 ```{r, fig.dim = c(12, 7)}
+if (require(EnsDb.Hsapiens.v75)) {
 library(cowplot)
 p1 <- locus_ggplot(loc, draw = FALSE)
 p2 <- locus_ggplot(loc2, legend_pos = NULL, draw = FALSE)
 plot_grid(p1, p2, ncol = 2)
+}
 ```
 
 Or using ggpubr or gridExtra:

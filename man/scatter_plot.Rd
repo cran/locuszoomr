@@ -15,7 +15,7 @@ scatter_plot(
   cex.lab = 1,
   xlab = NULL,
   ylab = NULL,
-  yzero = TRUE,
+  yzero = (loc$yvar == "logP"),
   xticks = TRUE,
   border = FALSE,
   showLD = TRUE,
@@ -75,16 +75,19 @@ legend.}
 value "index" selects the highest point or index SNP as defined when
 \code{\link[=locus]{locus()}} is called. Set to \code{NULL} to remove all labels.}
 
-\item{label_x}{Value for position of label as percentage of x axis scale.}
+\item{label_x}{Value or vector for position of label as percentage of x axis
+scale.}
 
-\item{label_y}{Value for position of label as percentage of y axis scale.}
+\item{label_y}{Value or vector for position of label as percentage of y axis
+scale.}
 
 \item{add}{Logical whether to add points to an existing plot or generate a
 new plot.}
 
 \item{align}{Logical whether to set \code{\link[=par]{par()}} to align the plot.}
 
-\item{...}{Other arguments passed to \code{\link[=plot]{plot()}} for the scatter plot.}
+\item{...}{Other arguments passed to \code{\link[=plot]{plot()}} to control the scatter plot
+e.g. \code{main}, \code{ylim} etc.}
 }
 \value{
 No return value. Produces a scatter plot using base graphics.

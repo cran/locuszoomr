@@ -33,12 +33,12 @@ scatter_plotly <- function(loc,
                            sigCol = 'red',
                            xlab = NULL,
                            ylab = NULL,
-                           yzero = TRUE,
+                           yzero = (loc$yvar == "logP"),
                            showLD = TRUE,
                            LD_scheme = c('grey', 'royalblue', 'cyan2', 'green3', 
                                          'orange', 'red', 'purple'),
                            marker_outline = "black",
-                           marker_size = 50) {
+                           marker_size = 7) {
   if (!inherits(loc, "locus")) stop("Object of class 'locus' required")
   data <- loc$data
   if (is.null(xlab)) xlab <- paste("Chromosome", loc$seqname, "(Mb)")
@@ -88,7 +88,7 @@ scatter_plotly <- function(loc,
   xlim <- xlim + c(-xext, xext)
   
   ylim <- range(data[, loc$yvar], na.rm = TRUE)
-  ylim[1] <- if (yzero) min(c(0, ylim[1]))
+  if (yzero) ylim[1] <- min(c(0, ylim[1]))
   ydiff <- diff(ylim)
   ylim[2] <- ylim[2] + ydiff * 0.05
   ylim[1] <- if (ylim[1] != 0) ylim[1] - ydiff *0.05 else ylim[1] - ydiff *0.02
@@ -99,8 +99,8 @@ scatter_plotly <- function(loc,
   
   plot_ly(x = data[, loc$pos] / 1e6, y = data[, loc$yvar],
           color = data$bg, colors = LD_scheme,
-          marker = list(line = list(width = 1, color = marker_outline)),
-          size = I(marker_size),
+          marker = list(size = marker_size, opacity = 0.8,
+                        line = list(width = 1, color = marker_outline)),
           text = hovertext,
           hoverinfo = 'text',
           type = "scattergl", mode = "markers") %>%

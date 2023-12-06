@@ -10,6 +10,11 @@
 #' plotting. LDlink web server can be queried using function [link_LD()] to
 #' retrieve linkage disequilibrium (LD) information on the index SNP.
 #' 
+#' Arguments to control plotting of the gene tracks are passed onto
+#' [genetracks()] and for the scatter plot are passed via `...` to
+#' [scatter_plot()]. See the documentation for each of these functions for
+#' details.
+#' 
 #' @param loc Object of class 'locus' to use for plot. See [locus()].
 #' @param filter_gene_name Vector of gene names to display.
 #' @param filter_gene_biotype Vector of gene biotypes to be filtered. Use
@@ -38,13 +43,12 @@
 #'   `showExons` is `FALSE`). Set to `NA` for no border.
 #' @param text_pos Character value of either 'top' or 'left' specifying 
 #' placement of gene name labels.
-#' @param ... Other arguments passed to [scatter_plot()] to control the scatter
-#'   plot.
+#' @param ... Other arguments passed to [scatter_plot()] and [plot()] to control
+#'   the scatter plot, e.g. `ylab`, `main`, etc.
 #' @return No return value.
 #' @seealso [locus()] [scatter_plot()] [genetracks()]
 #' @examples
 #' if(require(EnsDb.Hsapiens.v75)) {
-#' library(EnsDb.Hsapiens.v75)
 #' data(SLE_gwas_sub)
 #' loc <- locus(SLE_gwas_sub, gene = 'UBE2L3', flank = 1e5,
 #'              ens_db = "EnsDb.Hsapiens.v75")
@@ -53,7 +57,8 @@
 #' ## Use embedded LD information in column `r2`
 #' loc2 <- locus(SLE_gwas_sub, gene = 'IRF5', flank = c(7e4, 2e5), LD = "r2",
 #'               ens_db = "EnsDb.Hsapiens.v75")
-#' locus_plot(loc2)
+#' ## Add label for index SNP
+#' locus_plot(loc2, labels = "index")
 #' }
 #' @export
 

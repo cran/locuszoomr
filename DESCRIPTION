@@ -1,6 +1,6 @@
 Package: locuszoomr
 Title: Gene Locus Plot with Gene Annotations
-Version: 0.1.2
+Version: 0.1.3
 Authors@R: 
     c(person(given = "Myles",family = "Lewis",
     role = c("aut", "cre"),
@@ -21,8 +21,8 @@ RoxygenNote: 7.2.3
 Suggests: AnnotationHub, cowplot, EnsDb.Hsapiens.v75, knitr, rmarkdown
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2023-11-01 22:07:04 UTC; myles
+Packaged: 2023-12-05 11:49:11 UTC; myles
 Author: Myles Lewis [aut, cre] (<https://orcid.org/0000-0001-9365-5345>)
 Maintainer: Myles Lewis <myles.lewis@qmul.ac.uk>
 Repository: CRAN
-Date/Publication: 2023-11-02 01:10:05 UTC
+Date/Publication: 2023-12-06 04:30:02 UTC

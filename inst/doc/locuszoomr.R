@@ -21,12 +21,13 @@ library(locuszoomr)
 data(SLE_gwas_sub)  ## limited subset of data from SLE GWAS
 head(SLE_gwas_sub)
 
-## ----warning=FALSE, message=FALSE, fig.dim=c(8, 7)----------------------------
-library(EnsDb.Hsapiens.v75)
+## ----message=FALSE, fig.dim=c(8, 7)-------------------------------------------
+if (require(EnsDb.Hsapiens.v75)) {
 loc <- locus(SLE_gwas_sub, gene = 'UBE2L3', flank = 1e5,
              ens_db = "EnsDb.Hsapiens.v75")
 summary(loc)
 locus_plot(loc)
+}
 
 ## ----eval=FALSE---------------------------------------------------------------
 #  library(AnnotationHub)
@@ -73,9 +74,12 @@ locus_plot(loc)
 #  locus_plot(loc)
 
 ## ----fig.dim=c(8, 7)----------------------------------------------------------
+if (require(EnsDb.Hsapiens.v75)) {
 loc <- locus(SLE_gwas_sub, gene = 'UBE2L3', flank = 1e5, LD = "r2",
              ens_db = "EnsDb.Hsapiens.v75")
-locus_plot(loc, labels = c("index", "rs5754467"))
+locus_plot(loc, labels = c("index", "rs140492"),
+                label_x = c(4, -5))
+}
 
 ## ----eval = FALSE-------------------------------------------------------------
 #  # Filter by gene biotype
@@ -86,14 +90,18 @@ locus_plot(loc, labels = c("index", "rs5754467"))
 #                                       'PI4KAP2', 'MIR301B'))
 
 ## ----fig.dim=c(7, 3.5)--------------------------------------------------------
+if (require(EnsDb.Hsapiens.v75)) {
 genetracks(loc)
+}
 
 ## ----fig.dim=c(7, 2.5)--------------------------------------------------------
+if (require(EnsDb.Hsapiens.v75)) {
 # Limit the number of tracks
 # Filter by gene biotype
 # Customise colours
 genetracks(loc, maxrows = 3, filter_gene_biotype = 'protein_coding',
            gene_col = 'grey', exon_col = 'orange', exon_border = 'darkgrey')
+}
 
 ## ----eval=FALSE---------------------------------------------------------------
 #  # obtain GTEx eQTL data from LDlinkR
@@ -127,9 +135,11 @@ genetracks(loc, maxrows = 3, filter_gene_biotype = 'protein_coding',
 knitr::include_graphics("eqtl_overlay.png")
 
 ## ----fig.dim=c(8, 7)----------------------------------------------------------
+if (require(EnsDb.Hsapiens.v75)) {
 locb <- locus(SLE_gwas_sub, gene = 'UBE2L3', flank = 1e5, yvar = "beta",
               ens_db = "EnsDb.Hsapiens.v75")
 locus_plot(locb)
+}
 
 ## ----eval = FALSE-------------------------------------------------------------
 #  genes <- c("STAT4", "IRF5", "UBE2L3")
@@ -167,6 +177,7 @@ locus_plot(locb)
 #  dev.off()
 
 ## ----echo=FALSE, message=FALSE, fig.dim = c(9,5)------------------------------
+if (require(EnsDb.Hsapiens.v75)) {
 loc2 <- locus(SLE_gwas_sub, gene = 'IRF5', flank = c(7e4, 2e5), LD = "r2",
               ens_db = "EnsDb.Hsapiens.v75")
 loc3 <- locus(SLE_gwas_sub, gene = 'STAT4', flank = 1e5, LD = "r2",
@@ -179,6 +190,7 @@ multi_layout(ncol = 3,
                locus_plot(loc3, use_layout = FALSE, legend_pos = NULL,
                           labels = "index")
              })
+}
 
 ## ----eval=FALSE---------------------------------------------------------------
 #  pdf("myplot2.pdf", width = 6, height = 8)
@@ -191,42 +203,32 @@ multi_layout(ncol = 3,
 #  dev.off()
 
 ## ----echo=FALSE, fig.dim = c(6,8)---------------------------------------------
+if (require(EnsDb.Hsapiens.v75)) {
 oldpar <- set_layers(2)
 scatter_plot(loc, xticks = FALSE)
 line_plot(loc, col = "orange", xticks = FALSE)
 genetracks(loc)
 par(oldpar)
+}
 
-## ----eval=FALSE---------------------------------------------------------------
-#  dat <- SLE_gwas_sub
-#  dat$p2 <- -log10(dat$p * 0.1)
-#  locp <- locus(dat, gene = 'UBE2L3', flank = 1e5)
-#  locp2 <- locus(dat, gene = 'UBE2L3', flank = 1e5, yvar = "p2")
-#  
-#  # set up overlaid plot with 1 plot & a gene track; store old par() settings
-#  oldpar <- set_layers(1)
-#  scatter_plot(locp, xticks = FALSE, pcutoff = NULL, ylim = c(0, 16))
-#  scatter_plot(locp2, xticks = FALSE, pcutoff = NULL, chromCol = "orange",
-#               pch = 22, add = TRUE)
-#  genetracks(loc)
-#  par(oldpar)  # revert par() settings
-
-## ----echo=FALSE, message=FALSE, fig.dim = c(7,7)------------------------------
+## ----message=FALSE, fig.dim = c(7,7)------------------------------------------
+if (require(EnsDb.Hsapiens.v75)) {
 dat <- SLE_gwas_sub
 dat$p2 <- -log10(dat$p * 0.1)
 locp <- locus(dat, gene = 'UBE2L3', flank = 1e5, ens_db = "EnsDb.Hsapiens.v75")
 locp2 <- locus(dat, gene = 'UBE2L3', flank = 1e5, yvar = "p2",
                ens_db = "EnsDb.Hsapiens.v75")
 
-# set up overlaid plot with 1 plot & a gene track; store old par() settings
 oldpar <- set_layers(1)
 scatter_plot(locp, xticks = FALSE, pcutoff = NULL, ylim = c(0, 16))
 scatter_plot(locp2, xticks = FALSE, pcutoff = NULL, chromCol = "orange",
              pch = 22, add = TRUE)
 genetracks(loc)
-par(oldpar)  # revert par() settings
+par(oldpar)
+}
 
-## ----message=FALSE, fig.dim = c(7,7)------------------------------------------
+## ----fig.dim = c(7,7)---------------------------------------------------------
+if (require(EnsDb.Hsapiens.v75)) {
 # add vertical lines for gene of interest under the main plot
 pf <- quote({
   v <- locp$TX[locp$TX$gene_name == "UBE2L3", c("start", "end")]
@@ -248,6 +250,7 @@ pl <- quote({
 })
 
 locus_plot(locp, pcutoff = NULL, panel.first = pf, panel.last = pl)
+}
 
 ## ----eval=FALSE---------------------------------------------------------------
 #  locus_ggplot(loc)
@@ -264,10 +267,12 @@ locus_plot(locp, pcutoff = NULL, panel.first = pf, panel.last = pl)
 #  gg_addgenes(p, loc)
 
 ## ----fig.dim = c(12, 7)-------------------------------------------------------
+if (require(EnsDb.Hsapiens.v75)) {
 library(cowplot)
 p1 <- locus_ggplot(loc, draw = FALSE)
 p2 <- locus_ggplot(loc2, legend_pos = NULL, draw = FALSE)
 plot_grid(p1, p2, ncol = 2)
+}
 
 ## ----eval=FALSE---------------------------------------------------------------
 #  library(ggpubr)
