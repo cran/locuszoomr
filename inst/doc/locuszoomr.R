@@ -23,7 +23,7 @@ head(SLE_gwas_sub)
 
 ## ----message=FALSE, fig.dim=c(8, 7)-------------------------------------------
 if (require(EnsDb.Hsapiens.v75)) {
-loc <- locus(SLE_gwas_sub, gene = 'UBE2L3', flank = 1e5,
+loc <- locus(data = SLE_gwas_sub, gene = 'UBE2L3', flank = 1e5,
              ens_db = "EnsDb.Hsapiens.v75")
 summary(loc)
 locus_plot(loc)
@@ -58,7 +58,7 @@ locus_plot(loc)
 #  
 #  # built-in mini dataset
 #  data("SLE_gwas_sub")
-#  loc <- locus(SLE_gwas_sub, gene = 'UBE2L3', fix_window = 1e6,
+#  loc <- locus(data = SLE_gwas_sub, gene = 'UBE2L3', fix_window = 1e6,
 #               ens_db = ensDb_v106)
 #  locus_plot(loc)
 
@@ -70,7 +70,7 @@ locus_plot(loc)
 #  SLE_gwas <- fread('../bentham_2015_26502338_sle_efo0002690_1_gwas.sumstats.tsv')
 #  loc <- locus(SLE_gwas, gene = 'UBE2L3', flank = 1e5,
 #               ens_db = "EnsDb.Hsapiens.v75")
-#  loc <- link_LD(loc, LDtoken = "your_token")
+#  loc <- link_LD(loc, token = "your_token")
 #  locus_plot(loc)
 
 ## ----fig.dim=c(8, 7)----------------------------------------------------------
@@ -79,6 +79,14 @@ loc <- locus(SLE_gwas_sub, gene = 'UBE2L3', flank = 1e5, LD = "r2",
              ens_db = "EnsDb.Hsapiens.v75")
 locus_plot(loc, labels = c("index", "rs140492"),
                 label_x = c(4, -5))
+}
+
+## ----fig.dim=c(7, 6)----------------------------------------------------------
+if (require(EnsDb.Hsapiens.v75)) {
+loc3 <- locus(SLE_gwas_sub, gene = 'STAT4', flank = 1e5, LD = "r2",
+              ens_db = "EnsDb.Hsapiens.v75")
+loc3 <- link_recomb(loc3, genome = "hg19")
+locus_plot(loc3)
 }
 
 ## ----eval = FALSE-------------------------------------------------------------
@@ -103,12 +111,19 @@ genetracks(loc, maxrows = 3, filter_gene_biotype = 'protein_coding',
            gene_col = 'grey', exon_col = 'orange', exon_border = 'darkgrey')
 }
 
+## ----eval = FALSE-------------------------------------------------------------
+#  loc00 <- locus(gene = 'UBE2L3', flank = 1e5, ens_db = "EnsDb.Hsapiens.v75")
+#  
+#  genetracks(loc00)  # base graphics
+#  gg_genetracks(loc00)  # ggplot2
+#  genetrack_ly(loc00)  # plotly
+
 ## ----eval=FALSE---------------------------------------------------------------
 #  # obtain GTEx eQTL data from LDlinkR
 #  # needs personal access token for LDlink
 #  loc2 <- locus(SLE_gwas_sub, gene = 'IRF5', flank = c(7e4, 2e5), LD = "r2",
 #                ens_db = "EnsDb.Hsapiens.v75")
-#  loc2 <- link_eqtl(loc2, LDtoken = "..")
+#  loc2 <- link_eqtl(loc2, token = "..")
 #  head(loc2$LDexp)  # show eQTL data
 
 ## ----eval=FALSE---------------------------------------------------------------
@@ -256,7 +271,6 @@ locus_plot(locp, pcutoff = NULL, panel.first = pf, panel.last = pl)
 #  locus_ggplot(loc)
 
 ## ----eval=FALSE---------------------------------------------------------------
-#  grid::grid.newpage()
 #  gg_genetracks(loc)
 
 ## ----eval=FALSE---------------------------------------------------------------
@@ -266,11 +280,23 @@ locus_plot(locp, pcutoff = NULL, panel.first = pf, panel.last = pl)
 ## ----eval=FALSE---------------------------------------------------------------
 #  gg_addgenes(p, loc)
 
+## ----eval=FALSE---------------------------------------------------------------
+#  g <- gg_genetracks(loc)
+#  library(cowplot)
+#  plot_grid(p, p, g, ncol = 1, rel_heights = c(2, 2, 1), align = "v")
+#  
+#  # patchwork method
+#  library(patchwork)
+#  p / p / g
+#  
+#  # patchwork method 2
+#  wrap_plots(p, p, g, ncol = 1)
+
 ## ----fig.dim = c(12, 7)-------------------------------------------------------
 if (require(EnsDb.Hsapiens.v75)) {
 library(cowplot)
-p1 <- locus_ggplot(loc, draw = FALSE)
-p2 <- locus_ggplot(loc2, legend_pos = NULL, draw = FALSE)
+p1 <- locus_ggplot(loc)
+p2 <- locus_ggplot(loc2, legend_pos = NULL)
 plot_grid(p1, p2, ncol = 2)
 }
 
@@ -290,4 +316,27 @@ plot_grid(p1, p2, ncol = 2)
 
 ## ----out.width='70%', fig.align="center", echo=FALSE--------------------------
 knitr::include_graphics("plotly.png")
+
+## ----eval=FALSE---------------------------------------------------------------
+#  # FTP download full summary statistics of this SLE GWAS from
+#  # https://www.ebi.ac.uk/gwas/studies/GCST003156
+#  library(data.table)
+#  SLE_gwas <- fread('../bentham_2015_26502338_sle_efo0002690_1_gwas.sumstats.tsv')
+#  
+#  pks <- quick_peak(SLE_gwas)
+#  ## 34 peaks found (0.328 secs)
+#  
+#  top_snps <- SLE_gwas$rsid[pks]
+#  head(top_snps)
+#  ## [1] "rs141910407" "rs114056368" "rs4274624"   "rs17849501"  "rs1143679"   "rs114115096"
+
+## ----eval=FALSE---------------------------------------------------------------
+#  all_loci <- lapply(top_snps, function(i) {
+#    locus(data = SLE_gwas, index_snp = i, fix_window = 1e6,
+#          ens_db = "EnsDb.Hsapiens.v75")
+#  })
+#  
+#  pdf("sle_loci.pdf")
+#  tmp <- lapply(all_loci, locus_plot)
+#  dev.off()
 

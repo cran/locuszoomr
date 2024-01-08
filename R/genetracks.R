@@ -27,8 +27,10 @@
 #' @param exon_col Fill colour for exons.
 #' @param exon_border Border line colour outlining exons (or genes if
 #'   `showExons` is `FALSE`). Set to `NA` for no border.
-#' @param text_pos Character value of either 'top' or 'left' specifying 
-#' placement of gene name labels.
+#' @param text_pos Character value of either 'top' or 'left' specifying
+#'   placement of gene name labels.
+#' @param showRecomb Logical controls alignment of right margin if
+#'   recombination data present.
 #' @param align Logical whether to set [par()] to align the plot.
 #' @return No return value.
 #' @examples
@@ -67,6 +69,7 @@ genetracks <- function(locus,
                        text_pos = 'top',
                        xticks = TRUE,
                        xlab = NULL,
+                       showRecomb = TRUE,
                        align = TRUE) {
   if (!inherits(locus, "locus")) stop("Object of class 'locus' required")
   TX <- locus$TX
@@ -78,21 +81,21 @@ genetracks <- function(locus,
   if (!is.null(filter_gene_biotype)) {
     TX <- TX[TX$gene_biotype %in% filter_gene_biotype, ]
   }
-  if (nrow(TX) == 0) {
-    message('No genes to plot')
-    return(plot.new())
-  }
   if (is.null(xlab)) xlab <- paste("Chromosome", locus$seqname, "(Mb)")
   
+  recomb <- !is.null(locus$recomb) & showRecomb
   if (align) {
-    op <- par(mar = c(ifelse(xticks, 3.5, 1), 3.5, 0.25, 1.5))
+    op <- par(mar = c(ifelse(xticks, 3.5, 1), 3.5, 0.25,
+                      ifelse(recomb, 3.5, 1.5)))
     on.exit(par(op))
   }
   
-  TX <- mapRow(TX, xlim = xrange, cex.text = cex.text, text_pos = text_pos)
-  maxrows <- if (is.null(maxrows)) max(TX$row) else min(c(max(TX$row), maxrows))
-  if (max(TX$row) > maxrows) message(max(TX$row), " tracks needed to show all genes")
-  TX <- TX[TX$row <= maxrows, ]
+  if (nrow(TX) != 0) {
+    TX <- mapRow(TX, xlim = xrange, cex.text = cex.text, text_pos = text_pos)
+    maxrows <- if (is.null(maxrows)) max(TX$row) else min(c(max(TX$row), maxrows))
+    if (max(TX$row) > maxrows) message(max(TX$row), " tracks needed to show all genes")
+    TX <- TX[TX$row <= maxrows, ]
+  } else maxrows <- 1
   
   plot(NA, xlim = xrange,
        ylim = c(-maxrows - 0.3, -0.3), 
@@ -110,8 +113,12 @@ genetracks <- function(locus,
          lwd = 0, lwd.ticks = 1,
          tcl = -0.3, mgp = c(1.7, 0.4, 0))
   }
-  exheight <- switch(text_pos, "top" = 0.15, "left" = 0.3)
+  if (nrow(TX) == 0) {
+    message("No genes to plot")
+    return(invisible(NULL))
+  }
   
+  exheight <- switch(text_pos, "top" = 0.15, "left" = 0.3)
   if (showExons) {
     for (i in seq_len(nrow(TX))) {
       lines(TX[i, c('start', 'end')], rep(-TX[i, 'row'], 2),
@@ -160,6 +167,8 @@ genetracks <- function(locus,
 mapRow <- function(TX, gap = diff(xlim) * 0.02, cex.text = 0.7, 
                    xlim = range(TX[, c('start', 'end')]),
                    text_pos = 'top') {
+  blank <- TX$gene_name == ""
+  if (any(blank)) TX$gene_name[blank] <- TX$gene_id[blank]
   gw <- strwidth(paste0("--", TX$gene_name), units = "inch", 
                  cex = cex.text) * diff(xlim) / par("pin")[1]
   TX$mean <- rowMeans(TX[, c('start', 'end')])

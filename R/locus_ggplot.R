@@ -4,7 +4,7 @@
 #' Genomic locus plot similar to locuszoom.
 #'
 #' @param loc Object of class 'locus' to use for plot. See [locus()].
-#' @param height A unit object specifying height of the lower gene track.
+#' @param heights Vector supplying the ratio of top to bottom plot.
 #' @param index_snp Specifies index SNP to be shown in a different colour and
 #'   symbol. Defaults to the SNP with the lowest p-value. Set to `NULL` to not
 #'   show this.
@@ -29,9 +29,11 @@
 #'   SNPs which lack LD information. The next 5 colours are for r2 or D' LD
 #'   results ranging from 0 to 1 in intervals of 0.2. The final colour is for
 #'   the index SNP.
+#' @param recomb_col Colour for recombination rate line if recombination rate
+#'   data is present. Set to NA to hide the line. See [link_recomb()] to add
+#'   recombination rate data.
 #' @param legend_pos Position of legend e.g. "topleft", "topright" or ggplot2
 #'   settings. Set to `NULL` to hide legend.
-#' @param draw Logical whether to call [grid.draw()] to draw the plot.
 #' @param ... Additional arguments passed to [gg_genetracks()] to control
 #'   colours of gene tracks etc.
 #' @return Returns a ggplot2 plot containing a scatter plot with genetracks
@@ -44,12 +46,10 @@
 #'              ens_db = "EnsDb.Hsapiens.v75")
 #' locus_ggplot(loc)
 #' }
-#' @importFrom ggplot2 ggplotGrob find_panel
-#' @importFrom gtable gtable_add_rows gtable_add_grob
-#' @importFrom grid grid.newpage grid.draw
+#' @importFrom cowplot plot_grid
 #' @export
 
-locus_ggplot <- function(loc, height = unit(5, "cm"),
+locus_ggplot <- function(loc, heights = c(3, 2),
                          index_snp = loc$index_snp,
                          pcutoff = 5e-08,
                          scheme = c('royalblue', 'red', 'purple'),
@@ -63,9 +63,11 @@ locus_ggplot <- function(loc, height = unit(5, "cm"),
                          showLD = TRUE,
                          LD_scheme = c('grey', 'royalblue', 'cyan2', 'green3', 
                                        'orange', 'red', 'purple'),
+                         recomb_col = "blue",
                          legend_pos = 'topleft',
-                         draw = TRUE,
                          ...) {
+  if (!inherits(loc, "locus")) stop("Object of class 'locus' required")
+  if (is.null(loc$data)) stop("No data points, only gene tracks")
   p <- gg_scatter(loc,
                   index_snp = index_snp,
                   pcutoff = pcutoff,
@@ -79,20 +81,12 @@ locus_ggplot <- function(loc, height = unit(5, "cm"),
                   border = border,
                   showLD = showLD,
                   LD_scheme = LD_scheme,
+                  recomb_col = recomb_col,
                   legend_pos = legend_pos)
-  g <- ggplotGrob(p)
-  panels_extent <- g %>% find_panel()
-  pg <- g %>%
-    gtable_add_rows(heights = height) %>%
-    gtable_add_grob(gg_genetracks(loc, xticks = (xticks != "top"),
-                                  border = border, xlab = xlab,
-                                  cex.axis = cex.axis,
-                                  cex.lab = cex.lab, draw = FALSE, ...),
-                    t = -1, b = -1,
-                    l = panels_extent$l, r = panels_extent$l +1)
-  if (draw) {
-    grid.newpage()
-    grid.draw(pg)
-  }
-  invisible(pg)
+  g <- gg_genetracks(loc, xticks = (xticks != "top"),
+                     border = border, xlab = xlab,
+                     cex.axis = cex.axis,
+                     cex.lab = cex.lab, ...)
+  
+  plot_grid(p, g, nrow = 2, rel_heights = heights, align = "v")
 }

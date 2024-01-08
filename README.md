@@ -1,13 +1,23 @@
 # locuszoomr
 
-This is a pure R implementation of locuszoom for plotting genetic data at 
-genomic loci accompanied by gene annotations. It uses the LDlink API to query 
-linkage disequilibrium data from 1000 Genomes.
+[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/locuszoomr)](https://cran.r-project.org/package=locuszoomr)
+[![Downloads](http://cranlogs.r-pkg.org/badges/locuszoomr)](https://CRAN.R-project.org/package=locuszoomr)
+
+This is a pure R implementation of locuszoom for plotting genetic data at
+genomic loci accompanied by gene annotations. Plots can be produced in base
+graphics, ggplot2 or plotly. Plots can be stacked or laid out with multiple
+plots per page, or the gene track can be plotted separately and added to your
+own plots.
+
+The LDlink API can be queried to obtain linkage disequilibrium data from 1000
+Genomes. Recombination rate can also be shown by querying UCSC genome browser.
+
+See the detailed vignette for code examples.
 
 # Installation
 
-Bioconductor packages `ensembldb` and an Ensembl database installed either as a
-package or obtained through Bioconductor packages `AnnotationHub` are required
+Bioconductor package `ensembldb` and an Ensembl database installed either as a
+package or accessed through Bioconductor package `AnnotationHub` are required
 before installation.
 
 ```
@@ -54,6 +64,6 @@ locus_plot(loc)
 library(data.table)
 SLE_gwas <- fread('../bentham_2015_26502338_sle_efo0002690_1_gwas.sumstats.tsv')
 
-loc <- locus(gene = 'UBE2L3', SLE_gwas, flank = 1e5, LDtoken = "..")
+loc <- locus(gene = 'UBE2L3', SLE_gwas, flank = 1e5)
 locus_plot(loc)
 ```

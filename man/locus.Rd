@@ -6,7 +6,7 @@
 \usage{
 locus(
   gene = NULL,
-  data,
+  data = NULL,
   xrange = NULL,
   seqname = NULL,
   flank = NULL,
@@ -23,16 +23,17 @@ locus(
 }
 \arguments{
 \item{gene}{Optional character value specifying which gene to view. Either
-\code{gene} or \code{xrange} plus \code{seqname} must be specified.}
+\code{gene}, or \code{xrange} plus \code{seqname}, or \code{index_snp} must be specified.}
 
-\item{data}{Dataset (data.frame or data.table) to use for plot.}
+\item{data}{Dataset (data.frame or data.table) to use for plot. If
+unspecified or \code{NULL}, gene track information alone is returned.}
 
 \item{xrange}{Optional vector of genomic position range for the x axis.}
 
 \item{seqname}{Optional, specifies which chromosome to plot.}
 
 \item{flank}{Single value or vector with 2 values for how much flanking
-region left and right of the gene to show. Defaults to 50,000.}
+region left and right of the gene to show. Defaults to 100kb.}
 
 \item{fix_window}{Optional alternative to \code{flank}, which allows users to
 specify a fixed genomic window centred on the specified gene. Both \code{flank}
@@ -62,7 +63,8 @@ simultaneously.}
 If \code{NULL} tries to autodetect the column.}
 
 \item{index_snp}{Specifies the index SNP. If not specified, the SNP with the
-lowest P value is selected.}
+lowest P value is selected. Can be used to specify locus region instead of
+specifying \code{gene}, or \code{seqname} and \code{xrange}.}
 
 \item{LD}{Optional character value to specify which column in \code{data} contains
 LD information.}
@@ -75,7 +77,8 @@ Ensembl database version number,
 column names for chromosome, position, SNP ID, p-value or variable for
 plotting on y axis,
 locus gene information from Ensembl and
-locus exon information from Ensembl.
+locus exon information from Ensembl. If \code{data} is \code{NULL} then gene track
+information alone is returned.
 }
 \description{
 Creates object of class 'locus' for genomic locus plot similar to
