@@ -14,6 +14,9 @@
 #' LDlink API. See `LDlinkR` package documentation.
 #' @param ... Optional arguments such as `genome_build` which are passed on to
 #'   `LDlinkR::LDmatrix()`
+#' @details
+#' Results are cached using `memoise` to reduce API requests.
+#' 
 #' @return Returns a list object of class 'locus'. LD information is added as a
 #'   column `ld` in list element `data`.
 #' @seealso [locus()]
@@ -36,11 +39,15 @@ link_LD <- function(loc,
   rslist <- loc$data[, labs]
   if (length(rslist) > 1000) {
     rslist <- rslist[order(loc$data$logP, decreasing = TRUE)[seq_len(1000)]]
+    rslist <- unique(c(index_snp, rslist))[seq_len(1000)]
   }
   message("Obtaining LD on ", length(rslist), " SNPs", appendLF = FALSE)
   ldm <- mem_LDmatrix(rslist, pop = pop, r2d = r2d, token = token, ...)
-  ld <- ldm[, index_snp]
-  loc$data$ld <- ld[match(loc$data[, labs], ldm$RS_number)]
+  if (index_snp %in% colnames(ldm)) {
+    ld <- ldm[, index_snp]
+    loc$data$ld <- ld[match(loc$data[, labs], ldm$RS_number)]
+  } else message("Index SNP not found in LDlink data")
+  
   loc
 }
 

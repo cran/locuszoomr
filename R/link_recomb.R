@@ -9,7 +9,7 @@
 #'   use.
 #' @details
 #' Uses the `rtracklayer` package to query UCSC genome browser for recombination
-#' rate data. The results are cached using `memoise` to reduce API requests.
+#' rate data.
 #' 
 #' Possible options for `table` for hg19 are `"hapMapRelease24YRIRecombMap"`,
 #' `"hapMapRelease24CEURecombMap"`, `"hapMapRelease24CombinedRecombMap"` (the
@@ -17,17 +17,24 @@
 #' 
 #' The only option for `table` for hg38 is `"recomb1000GAvg"` (the default).
 #' 
+#' Sometimes `rtracklayer` generates an intermittent API error: try calling
+#' `link_recomb()` again. Errors are handled gracefully using `try()` to allow
+#' users to wrap `link_recomb()` in a loop without quitting halfway. Error
+#' messages are still shown. Successful API calls are cached using `memoise` to
+#' reduce API requests.
+#' 
 #' @returns A list object of class 'locus'. Recombination data is added as list
 #'   element `recomb`.
 #' @importFrom GenomeInfoDb genome<-
 #' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges
 #' @importFrom rtracklayer browserSession ucscTableQuery getTable
+#' @importFrom memoise drop_cache
 #' @export
 #'
 link_recomb <- function(loc, genome = "hg38", table = NULL) {
   if (!inherits(loc, "locus")) stop("Not a locus object")
-  loc$recomb <- mem_query_recomb(genome, loc$xrange, loc$seqname, table)
+  loc$recomb <- get_recomb(genome, loc$xrange, loc$seqname, table)
   loc
 }
 
@@ -44,8 +51,17 @@ query_recomb <- function(gen, xrange, seqname, table = NULL) {
   session <- browserSession("UCSC")
   genome(session) <- gen
   query <- ucscTableQuery(session, table = table, range = gr)
-  getTable(query)
+  gtab <- try(getTable(query))
+  if (inherits(gtab, "try-error")) return(NULL)
+  gtab
 }
 
 # use memoise to reduce calls to UCSC API
 mem_query_recomb <- memoise(query_recomb)
+
+# drop memoise cache if error occurs
+get_recomb <- function(gen, xrange, seqname, table = NULL) {
+  ret <- mem_query_recomb(gen, xrange, seqname, table)
+  if (is.null(ret)) drop_cache(mem_query_recomb)(gen, xrange, seqname, table)
+  ret
+}

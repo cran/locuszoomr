@@ -295,7 +295,7 @@ locus_plot(locp, pcutoff = NULL, panel.first = pf, panel.last = pl)
 ## ----fig.dim = c(12, 7)-------------------------------------------------------
 if (require(EnsDb.Hsapiens.v75)) {
 library(cowplot)
-p1 <- locus_ggplot(loc)
+p1 <- locus_ggplot(loc, labels = "index", nudge_x = 0.03)
 p2 <- locus_ggplot(loc2, legend_pos = NULL)
 plot_grid(p1, p2, ncol = 2)
 }
@@ -332,11 +332,22 @@ knitr::include_graphics("plotly.png")
 
 ## ----eval=FALSE---------------------------------------------------------------
 #  all_loci <- lapply(top_snps, function(i) {
-#    locus(data = SLE_gwas, index_snp = i, fix_window = 1e6,
+#    loc <- locus(data = SLE_gwas, index_snp = i, fix_window = 1e6,
 #          ens_db = "EnsDb.Hsapiens.v75")
+#    link_recomb(loc, genome = "hg19")
 #  })
 #  
 #  pdf("sle_loci.pdf")
-#  tmp <- lapply(all_loci, locus_plot)
+#  tmp <- lapply(all_loci, locus_plot, labels = "index")
+#  dev.off()
+
+## ----eval=FALSE---------------------------------------------------------------
+#  pp <- lapply(all_loci, locus_ggplot, labels = "index", nudge_y = 1)
+#  
+#  library(gridExtra)
+#  pdf("sle_loci_gg.pdf")
+#  for (i in seq_along(pp)) {
+#    grid.arrange(pp[[i]])
+#  }
 #  dev.off()
 

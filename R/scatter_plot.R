@@ -10,9 +10,8 @@
 #'   show this.
 #' @param pcutoff Cut-off for p value significance. Defaults to p = 5e-08. Set
 #'   to `NULL` to disable.
-#' @param chromCol Colour for normal points if `LD` is `FALSE` when the locus
-#'   object is made.
-#' @param sigCol Colour for significant points if `LD` is `FALSE`.
+#' @param scheme Vector of 3 colours if LD is not shown: 1st = normal points,
+#'   2nd = colour for significant points, 3rd = index SNP.
 #' @param cex Specifies size for points.
 #' @param cex.axis Specifies font size for axis numbering.
 #' @param cex.lab Specifies font size for axis titles.
@@ -52,8 +51,7 @@
 scatter_plot <- function(loc,
                          index_snp = loc$index_snp,
                          pcutoff = 5e-08,
-                         chromCol = 'royalblue',
-                         sigCol = 'red',
+                         scheme = c('royalblue', 'red', 'purple'),
                          cex = 1,
                          cex.axis = 0.9,
                          cex.lab = 1,
@@ -88,9 +86,11 @@ scatter_plot <- function(loc,
       LD_scheme <- rep_len(LD_scheme, 7)
       data$bg <- LD_scheme[data$bg]
     } else {
-      data$bg <- chromCol
-      if (loc$yvar == "logP") data$bg[data[, loc$p] < pcutoff] <- sigCol
-      data$bg[data[, loc$labs] == index_snp] <- "purple"
+      data$bg <- 1L
+      if (loc$yvar == "logP") data$bg[data[, loc$p] < pcutoff] <- 2L
+      data$bg[data[, loc$labs] == index_snp] <- 3L
+      data <- data[order(data$bg), ]
+      data$bg <- scheme[data$bg]
     }
   }
   
@@ -104,6 +104,9 @@ scatter_plot <- function(loc,
   
   ylim <- range(data[, loc$yvar], na.rm = TRUE)
   if (yzero) ylim[1] <- min(c(0, ylim[1]))
+  if (!is.null(labels) & (border | recomb)) {
+    ylim[2] <- ylim[2] + diff(ylim) * 0.08
+  }
   panel.first <- quote({
     if (loc$yvar == "logP" & !is.null(pcutoff)) {
       abline(h = -log10(pcutoff), col = 'darkgrey', lty = 2)
