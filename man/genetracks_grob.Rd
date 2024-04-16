@@ -15,7 +15,10 @@ genetracks_grob(
   exon_border = "blue4",
   showExons = TRUE,
   maxrows = NULL,
-  text_pos = "top"
+  text_pos = "top",
+  highlight = NULL,
+  highlight_col = "red",
+  blanks = c("fill", "hide")
 )
 }
 \arguments{
@@ -47,6 +50,15 @@ annotation panel.}
 
 \item{text_pos}{Character value of either 'top' or 'left' specifying
 placement of gene name labels.}
+
+\item{highlight}{Vector of genes to highlight.}
+
+\item{highlight_col}{Single colour or vector of colours for highlighted
+genes.}
+
+\item{blanks}{Controls handling of genes with blank names: \code{"fill"} replaces
+blank gene symbols with ensembl gene ids. \code{"hide"} hides genes which are
+missing gene symbols.}
 }
 \value{
 A grob object.
@@ -56,8 +68,8 @@ Plot gene annotation tracks from \code{ensembldb} data using the grid package to
 create a grob.
 }
 \details{
-This function is called by \code{\link[=locus_ggplot]{locus_ggplot()}}. It can be used to plot
-the gene annotation tracks on their own.
+This function is called by \code{\link[=gg_genetracks]{gg_genetracks()}}. It can be used to
+generate a grob of the gene annotation tracks on their own.
 }
 \examples{
 if(require(EnsDb.Hsapiens.v75)) {

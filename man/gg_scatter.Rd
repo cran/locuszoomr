@@ -8,7 +8,7 @@ gg_scatter(
   loc,
   index_snp = loc$index_snp,
   pcutoff = 5e-08,
-  scheme = c("royalblue", "red", "purple"),
+  scheme = c("grey", "dodgerblue", "red"),
   size = 2,
   cex.axis = 1,
   cex.lab = 1,
@@ -22,6 +22,8 @@ gg_scatter(
   recomb_col = "blue",
   legend_pos = "topleft",
   labels = NULL,
+  eqtl_gene = NULL,
+  beta = NULL,
   ...
 )
 }
@@ -70,6 +72,12 @@ recombination rate data.}
 \item{labels}{Character vector of SNP or genomic feature IDs to label. The
 value "index" selects the highest point or index SNP as defined when
 \code{\link[=locus]{locus()}} is called. Set to \code{NULL} to remove all labels.}
+
+\item{eqtl_gene}{Optional column name in \code{loc$data} for colouring eQTL genes.}
+
+\item{beta}{Optional column name for beta coefficient to display upward
+triangles for positive beta and downward triangles for negative beta
+(significant SNPs only).}
 
 \item{...}{Optional arguments passed to \code{geom_text_repel()} to configure
 label drawing.}

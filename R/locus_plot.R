@@ -43,6 +43,12 @@
 #'   `showExons` is `FALSE`). Set to `NA` for no border.
 #' @param text_pos Character value of either 'top' or 'left' specifying
 #'   placement of gene name labels.
+#' @param highlight Vector of genes to highlight.
+#' @param highlight_col Single colour or vector of colours for highlighted
+#'   genes.
+#' @param blanks Controls handling of genes with blank names: `"fill"` replaces
+#'   blank gene symbols with ensembl gene ids. `"hide"` hides genes which are
+#'   missing gene symbols.
 #' @param recomb_col Colour for recombination rate line if recombination rate
 #'   data is present. Set to `NA` to hide the line. See [link_recomb()] to add
 #'   recombination rate data.
@@ -79,13 +85,16 @@ locus_plot <- function(loc,
                        maxrows = 7,
                        xticks = 'bottom',
                        border = FALSE,
-                       gene_col = 'blue4',
+                       gene_col = ifelse(showExons, 'blue4', 'skyblue'),
                        exon_col = 'blue4',
                        exon_border = 'blue4',
                        text_pos = 'top',
+                       highlight = NULL,
+                       highlight_col = "red",
+                       blanks = 'fill',
                        recomb_col = "blue", ...) {
   if (!inherits(loc, "locus")) stop("Object of class 'locus' required")
-  if (is.null(loc$data)) stop("No data points, only gene tracks")
+  if (is.null(loc$data)) stop("No SNPs/data points")
   
   if (use_layout) {
     op0 <- set_layers(1, heights, rev = TRUE)
@@ -97,7 +106,8 @@ locus_plot <- function(loc,
              border, cex.axis, cex.lab, cex.text, gene_col, exon_col, exon_border,
              showExons, maxrows, text_pos, xticks = (xticks == 'bottom'),
              xlab = if (xticks == 'bottom') xlab else "",
-             showRecomb = !is.na(recomb_col))
+             highlight = highlight, highlight_col = highlight_col,
+             blanks = blanks, showRecomb = !is.na(recomb_col))
   
   # upper panel plot points
   scatter_plot(loc, xticks = (xticks == 'top'),

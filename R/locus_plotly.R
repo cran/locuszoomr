@@ -17,14 +17,23 @@
 #' [ensembldb::listGenebiotypes()] to display possible biotypes. For example, 
 #' `ensembldb::listGenebiotypes(EnsDb.Hsapiens.v75)`
 #' @param cex.text Font size for gene text.
-#' @param maxrows Specifies maximum number of rows to display in gene 
-#' annotation panel.
-#' @param xlab Title for x axis. Defaults to chromosome `seqname` specified 
-#' in `locus`.
 #' @param gene_col Colour for gene lines.
 #' @param exon_col Fill colour for exons.
-#' @param exon_border Border line colour outlining exons. Set to `NA` for no 
-#' border.
+#' @param exon_border Border line colour outlining exons (or genes if
+#'   `showExons` is `FALSE`). Set to `NA` for no border.
+#' @param showExons Logical whether to show exons or simply show whole gene as a
+#'   rectangle. If `showExons = FALSE` colours are specified by `exon_border`
+#'   for rectangle border and `gene_col` for the fill colour.
+#' @param maxrows Specifies maximum number of rows to display in gene 
+#' annotation panel.
+#' @param width Width of plotly plot in pixels which is purely used to prevent
+#'   overlapping text for gene names.
+#' @param xlab Title for x axis. Defaults to chromosome `seqname` specified 
+#' in `locus`.
+#' @param blanks Controls handling of genes with blank names: `"fill"` replaces
+#'   blank gene symbols with ensembl gene ids. `"hide"` completely hides genes
+#'   which are missing gene symbols. `"show"` shows gene lines but no label
+#'   (hovertext is still available).
 #' @param ... Optional arguments passed to [scatter_plotly()] to control the
 #'   scatter plot.
 #' @returns A 'plotly' plotting object showing a scatter plot above gene tracks.
@@ -42,14 +51,18 @@ locus_plotly <- function(loc, heights = c(0.6, 0.4),
                          filter_gene_name = NULL,
                          filter_gene_biotype = NULL,
                          cex.text = 0.7,
-                         gene_col = 'blue4',
+                         gene_col = ifelse(showExons, 'blue4', 'skyblue'),
                          exon_col = 'blue4',
                          exon_border = 'blue4',
+                         showExons = TRUE,
                          maxrows = 8,
+                         width = 600,
                          xlab = NULL,
+                         blanks = "show",
                          ...) {
   g <- genetrack_ly(loc, filter_gene_name, filter_gene_biotype, cex.text, 
-                    gene_col, exon_col, exon_border, maxrows, xlab)
+                    gene_col, exon_col, exon_border, showExons, maxrows, width, 
+                    xlab, blanks)
   p <- scatter_plotly(loc, xlab = xlab, ...)
   
   plotly::subplot(p, g, shareX = TRUE, nrows = 2, heights = heights,

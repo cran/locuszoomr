@@ -59,11 +59,12 @@ devtools::install_github("myles-lewis/locuszoomr")
 
 `locuszoomr` can access the `LDlinkR` package to query 1000 Genomes for linkage
 disequilibrium (LD) across SNPs. In order to make use of this API function you
-will need a personal access token (see the `LDlinkR` vignette), available from
-the LDlink website https://ldlink.nih.gov/?tab=apiaccess.
+will need a personal access token, available from the
+[LDlink website](https://ldlink.nih.gov/?tab=apiaccess).
 
-Requests to LDlink are cached using the `memoise` package, to reduce API 
-requests. This is helpful when modifying plots for aesthetic reasons.
+We recommend that users who want to add recombination rate lines to multiple
+plots download the recombination rate track from UCSC and use it as described in
+the section [Add recombination rate](#add-recombination-rate).
 
 # Example locus plot
 
@@ -170,7 +171,8 @@ Once an API personal access token has been obtained, the
 `link_LD()` to retrieve LD (linkage disequilibrium) information at the locus
 which is overlaid on the locus plot. This is shown as a colour overlay showing
 the level of $r^2$ between SNPs and the index SNP which defaults to the SNP with
-the lowest p-value (or the SNP can be specified manually).
+the lowest p-value (or the SNP can be specified manually). Requests to LDlink
+are cached using the `memoise` package, to reduce API requests.
 
 ```{r eval = FALSE}
 # Locus plot using SLE GWAS data from Bentham et al 2015
@@ -214,6 +216,27 @@ locus_plot(loc3)
 }
 ```
 
+If you are performing multiple UCSC queries, it is much faster to download the
+whole recombination rate track data file (around 30 MB) from UCSC genome browser
+(documented [here](https://genome.ucsc.edu/cgi-bin/hgTrackUi?g=recombRate2)).
+
+The download site can be accessed at
+http://hgdownload.soe.ucsc.edu/gbdb/hg38/recombRate/. For hg38, download
+`recomb1000GAvg.bw`.
+
+For hg19, the link is http://hgdownload.soe.ucsc.edu/gbdb/hg19/decode/ and the
+default track we use is `hapMapRelease24CombinedRecombMap.bw`.
+
+The .bw track file can then be loaded into R as a `GRanges` object using
+`import.bw()`, and then used directly by `link_recomb()` as follows:
+
+```{r eval=FALSE}
+library(rtracklayer)
+recomb.hg19 <- import.bw("/../hapMapRelease24CombinedRecombMap.bw")
+loc3 <- link_recomb(loc3, recomb = recomb.hg19)
+locus_plot(loc3)
+```
+
 # Customise plots and labels
 
 Various plotting options can be customised through arguments via the call to
@@ -238,6 +261,12 @@ identify points is using the [plotly version](#plotly-version) `locus_plotly()`
 which allows you to hover over points and see their rsid or feature label.
 `label_x` and `label_y` control the position of the labels and can be specified
 as a single value or a vector of values.
+
+Advanced users familiar with base graphics can customise every single point
+on the scatter plot, by adding columns named `bg`, `col`, `pch` or `cex`
+directly to the dataframe stored in `$data` element of the `locus` object.
+Setting these will overrule any default settings. These columns refer to
+their respective base graphics arguments, see `?points`.
 
 See the help pages at `?locus_plot` and `?scatter_plot` for more details.
 
@@ -265,7 +294,7 @@ plots](#layering-plots) below.
 
 ```{r, fig.dim=c(7, 3.5)}
 if (require(EnsDb.Hsapiens.v75)) {
-genetracks(loc)
+genetracks(loc, highlight = "UBE2L3")
 }
 ```
 

@@ -89,6 +89,12 @@ loc3 <- link_recomb(loc3, genome = "hg19")
 locus_plot(loc3)
 }
 
+## ----eval=FALSE---------------------------------------------------------------
+#  library(rtracklayer)
+#  recomb.hg19 <- import.bw("/../hapMapRelease24CombinedRecombMap.bw")
+#  loc3 <- link_recomb(loc3, recomb = recomb.hg19)
+#  locus_plot(loc3)
+
 ## ----eval = FALSE-------------------------------------------------------------
 #  # Filter by gene biotype
 #  locus_plot(loc, filter_gene_biotype = "protein_coding")
@@ -99,7 +105,7 @@ locus_plot(loc3)
 
 ## ----fig.dim=c(7, 3.5)--------------------------------------------------------
 if (require(EnsDb.Hsapiens.v75)) {
-genetracks(loc)
+genetracks(loc, highlight = "UBE2L3")
 }
 
 ## ----fig.dim=c(7, 2.5)--------------------------------------------------------

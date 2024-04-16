@@ -1,17 +1,18 @@
 
 #' Locus scatter plot
 #'
-#' Produces a scatter plot from a 'locus' class object. Intended for use with
-#' [set_layers()].
+#' Produces a base graphics scatter plot from a 'locus' class object. This
+#' function is called by [locus_plot()] to generate the scatter plot portion.
+#' Can be used manually with [set_layers()].
 #'
 #' @param loc Object of class 'locus' to use for plot. See [locus].
-#' @param index_snp Specifies index SNP to be shown in a different colour and
-#'   symbol. Defaults to the SNP with the lowest p-value. Set to `NULL` to not
-#'   show this.
+#' @param index_snp Specifies index SNP or a vector of SNPs to be shown in a
+#'   different colour and symbol. Defaults to the SNP with the lowest p-value.
+#'   Set to `NULL` to not show this.
 #' @param pcutoff Cut-off for p value significance. Defaults to p = 5e-08. Set
 #'   to `NULL` to disable.
 #' @param scheme Vector of 3 colours if LD is not shown: 1st = normal points,
-#'   2nd = colour for significant points, 3rd = index SNP.
+#'   2nd = colour for significant points, 3rd = index SNP(s).
 #' @param cex Specifies size for points.
 #' @param cex.axis Specifies font size for axis numbering.
 #' @param cex.lab Specifies font size for axis titles.
@@ -38,12 +39,23 @@
 #'   scale.
 #' @param label_y Value or vector for position of label as percentage of y axis
 #'   scale.
+#' @param eqtl_gene Column name in `loc$data` for colouring eQTL genes.
+#' @param beta Optional column name for beta coefficient to display upward
+#'   triangles for positive beta and downward triangles for negative beta
+#'   (significant SNPs only).
 #' @param add Logical whether to add points to an existing plot or generate a
 #'   new plot.
 #' @param align Logical whether to set [par()] to align the plot.
 #' @param ... Other arguments passed to [plot()] to control the scatter plot
 #'   e.g. `main`, `ylim` etc.
 #' @return No return value. Produces a scatter plot using base graphics.
+#' @details
+#' Advanced users familiar with base graphics can customise every single point
+#' on the scatter plot, by adding columns named `bg`, `col`, `pch` or `cex`
+#' directly to the dataframe stored in `$data` element of the 'locus' object.
+#' Setting these will overrule any default settings. These columns refer to
+#' their respective base graphics arguments, see [graphics::points()].
+#' 
 #' @seealso [locus()] [set_layers()]
 #' @importFrom graphics par legend
 #' @export
@@ -51,7 +63,7 @@
 scatter_plot <- function(loc,
                          index_snp = loc$index_snp,
                          pcutoff = 5e-08,
-                         scheme = c('royalblue', 'red', 'purple'),
+                         scheme = c('grey', 'dodgerblue', 'red'),
                          cex = 1,
                          cex.axis = 0.9,
                          cex.lab = 1,
@@ -67,10 +79,14 @@ scatter_plot <- function(loc,
                          legend_pos = 'topleft',
                          labels = NULL,
                          label_x = 4, label_y = 4,
+                         eqtl_gene = NULL,
+                         beta = NULL,
                          add = FALSE,
                          align = TRUE, ...) {
   if (!inherits(loc, "locus")) stop("Object of class 'locus' required")
   if (is.null(loc$data)) stop("No data points, only gene tracks")
+  
+  .call <- match.call()
   data <- loc$data
   if (is.null(xlab)) xlab <- paste("Chromosome", loc$seqname, "(Mb)")
   if (is.null(ylab)) {
@@ -81,14 +97,22 @@ scatter_plot <- function(loc,
     if (showLD & hasLD) {
       data$bg <- cut(data$ld, -1:6/5, labels = FALSE)
       data$bg[is.na(data$bg)] <- 1L
-      data$bg[data[, loc$labs] == index_snp] <- 7L
+      data$bg[data[, loc$labs] %in% index_snp] <- 7L
       data <- data[order(data$bg), ]
       LD_scheme <- rep_len(LD_scheme, 7)
       data$bg <- LD_scheme[data$bg]
+    } else if (!is.null(eqtl_gene)) {
+      # eqtl gene colours
+      bg <- data[, eqtl_gene]
+      bg[data[, loc$p] > pcutoff] <- "ns"
+      bg <- relevel(factor(bg, levels = unique(bg)), "ns")
+      if (is.null(.call$scheme)) scheme <- eqtl_scheme(nlevels(bg))
+      data$bg <- scheme[bg]
     } else {
+      # default colours
       data$bg <- 1L
       if (loc$yvar == "logP") data$bg[data[, loc$p] < pcutoff] <- 2L
-      data$bg[data[, loc$labs] == index_snp] <- 3L
+      data$bg[data[, loc$labs] %in% index_snp] <- 3L
       data <- data[order(data$bg), ]
       data$bg <- scheme[data$bg]
     }
@@ -122,11 +146,17 @@ scatter_plot <- function(loc,
     }
   })
   
+  # shapes
   pch <- rep(21L, nrow(data))
-  pch[data[, loc$labs] == index_snp] <- 23L
+  pch[data[, loc$labs] %in% index_snp] <- 23L
+  if (!is.null(beta)) {
+    sig <- data[, loc$p] < pcutoff
+    pch[sig] <- 24 + (1 - sign(data[sig, beta])) / 2
+  }
   if ("pch" %in% colnames(data)) pch <- data$pch
   col <- "black"
   if ("col" %in% colnames(data)) col <- data$col
+  if ("cex" %in% colnames(data)) cex <- data$cex
   
   new.args <- list(...)
   if (add) {
@@ -156,7 +186,14 @@ scatter_plot <- function(loc,
   # add labels
   if (!is.null(labels)) {
     i <- grep("index", labels, ignore.case = TRUE)
-    if (i) labels[i] <- index_snp
+    if (length(i) > 0) {
+      if (length(index_snp) == 1) {
+        labels[i] <- index_snp
+      } else {
+        labels <- labels[-i]
+        labels <- c(index_snp, labels)
+      }
+    }
     ind <- match(labels, data[, loc$labs])
     if (any(is.na(ind))) {
       message("label ", paste(labels[is.na(ind)], collapse = ", "),
@@ -175,7 +212,21 @@ scatter_plot <- function(loc,
     axis(1, at = axTicks(1), labels = FALSE, tcl = -0.3)
   }
   if (!is.null(legend_pos)) {
-    if (showLD & hasLD) {
+    if (!is.null(eqtl_gene) | !is.null(beta)) {
+      leg <- pt.bg <- pch <- NULL
+      if (!is.null(eqtl_gene)) {
+        leg <- levels(bg)[-1]
+        pt.bg <- scheme[-1]
+        pch <- c(rep(21, length(scheme) -1))
+      }
+      if (!is.null(beta)) {
+        leg <- c(leg, expression({beta > 0}), expression({beta < 0}))
+        pch <- c(pch, 2, 6)
+        pt.bg <- c(pt.bg, NA)
+      }
+      legend(legend_pos, legend = leg, y.intersp = 0.96,
+             pch = pch, pt.bg = pt.bg, col = 'black', bty = 'n', cex = 0.8)
+    } else if (showLD & hasLD) {
       legend(legend_pos,
              legend = c("0.8 - 1.0", "0.6 - 0.8", "0.4 - 0.6", "0.2 - 0.4",
                         "0.0 - 0.2"),

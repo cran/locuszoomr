@@ -8,7 +8,7 @@ scatter_plot(
   loc,
   index_snp = loc$index_snp,
   pcutoff = 5e-08,
-  scheme = c("royalblue", "red", "purple"),
+  scheme = c("grey", "dodgerblue", "red"),
   cex = 1,
   cex.axis = 0.9,
   cex.lab = 1,
@@ -24,6 +24,8 @@ scatter_plot(
   labels = NULL,
   label_x = 4,
   label_y = 4,
+  eqtl_gene = NULL,
+  beta = NULL,
   add = FALSE,
   align = TRUE,
   ...
@@ -32,15 +34,15 @@ scatter_plot(
 \arguments{
 \item{loc}{Object of class 'locus' to use for plot. See \link{locus}.}
 
-\item{index_snp}{Specifies index SNP to be shown in a different colour and
-symbol. Defaults to the SNP with the lowest p-value. Set to \code{NULL} to not
-show this.}
+\item{index_snp}{Specifies index SNP or a vector of SNPs to be shown in a
+different colour and symbol. Defaults to the SNP with the lowest p-value.
+Set to \code{NULL} to not show this.}
 
 \item{pcutoff}{Cut-off for p value significance. Defaults to p = 5e-08. Set
 to \code{NULL} to disable.}
 
 \item{scheme}{Vector of 3 colours if LD is not shown: 1st = normal points,
-2nd = colour for significant points, 3rd = index SNP.}
+2nd = colour for significant points, 3rd = index SNP(s).}
 
 \item{cex}{Specifies size for points.}
 
@@ -83,6 +85,12 @@ scale.}
 \item{label_y}{Value or vector for position of label as percentage of y axis
 scale.}
 
+\item{eqtl_gene}{Column name in \code{loc$data} for colouring eQTL genes.}
+
+\item{beta}{Optional column name for beta coefficient to display upward
+triangles for positive beta and downward triangles for negative beta
+(significant SNPs only).}
+
 \item{add}{Logical whether to add points to an existing plot or generate a
 new plot.}
 
@@ -95,8 +103,16 @@ e.g. \code{main}, \code{ylim} etc.}
 No return value. Produces a scatter plot using base graphics.
 }
 \description{
-Produces a scatter plot from a 'locus' class object. Intended for use with
-\code{\link[=set_layers]{set_layers()}}.
+Produces a base graphics scatter plot from a 'locus' class object. This
+function is called by \code{\link[=locus_plot]{locus_plot()}} to generate the scatter plot portion.
+Can be used manually with \code{\link[=set_layers]{set_layers()}}.
+}
+\details{
+Advanced users familiar with base graphics can customise every single point
+on the scatter plot, by adding columns named \code{bg}, \code{col}, \code{pch} or \code{cex}
+directly to the dataframe stored in \verb{$data} element of the 'locus' object.
+Setting these will overrule any default settings. These columns refer to
+their respective base graphics arguments, see \code{\link[graphics:points]{graphics::points()}}.
 }
 \seealso{
 \code{\link[=locus]{locus()}} \code{\link[=set_layers]{set_layers()}}

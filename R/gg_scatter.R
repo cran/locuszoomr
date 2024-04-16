@@ -31,6 +31,10 @@
 #' @param labels Character vector of SNP or genomic feature IDs to label. The
 #'   value "index" selects the highest point or index SNP as defined when
 #'   [locus()] is called. Set to `NULL` to remove all labels.
+#' @param eqtl_gene Optional column name in `loc$data` for colouring eQTL genes.
+#' @param beta Optional column name for beta coefficient to display upward
+#'   triangles for positive beta and downward triangles for negative beta
+#'   (significant SNPs only).
 #' @param ... Optional arguments passed to `geom_text_repel()` to configure
 #'   label drawing.
 #' @return Returns a ggplot2 plot.
@@ -52,7 +56,7 @@
 #' @importFrom ggplot2 ggplot geom_point xlim ylim labs theme_classic theme
 #'  scale_fill_manual scale_color_manual aes guide_legend element_text
 #'  element_blank element_rect unit geom_hline scale_y_continuous sec_axis
-#'  geom_line
+#'  geom_line scale_shape_manual guides
 #' @importFrom ggrepel geom_text_repel
 #' @importFrom dplyr bind_rows
 #' @importFrom rlang .data
@@ -62,7 +66,7 @@
 gg_scatter <- function(loc,
                        index_snp = loc$index_snp,
                        pcutoff = 5e-08,
-                       scheme = c('royalblue', 'red', 'purple'),
+                       scheme = c('grey', 'dodgerblue', 'red'),
                        size = 2,
                        cex.axis = 1,
                        cex.lab = 1,
@@ -76,9 +80,13 @@ gg_scatter <- function(loc,
                                      'orange', 'red', 'purple'),
                        recomb_col = "blue",
                        legend_pos = 'topleft',
-                       labels = NULL, ...) {
+                       labels = NULL,
+                       eqtl_gene = NULL,
+                       beta = NULL, ...) {
   if (!inherits(loc, "locus")) stop("Object of class 'locus' required")
   if (is.null(loc$data)) stop("No data points, only gene tracks")
+  
+  .call <- match.call()
   data <- loc$data
   if (is.null(xlab) & xticks) xlab <- paste("Chromosome", loc$seqname, "(Mb)")
   if (is.null(ylab)) {
@@ -89,7 +97,7 @@ gg_scatter <- function(loc,
     if (showLD & hasLD) {
       data$bg <- cut(data$ld, -1:6/5, labels = FALSE)
       data$bg[is.na(data$bg)] <- 1L
-      data$bg[data[, loc$labs] == index_snp] <- 7L
+      data$bg[data[, loc$labs] %in% index_snp] <- 7L
       data$bg <- factor(data$bg, levels = 1:7)
       data <- data[order(data$bg), ]
       scheme <- rep_len(LD_scheme, 7)
@@ -97,10 +105,17 @@ gg_scatter <- function(loc,
         scheme <- scheme[1:6]
         data$bg <- factor(data$bg, levels = 1:6)
       }
+    } else if (!is.null(eqtl_gene)) {
+      # eqtl gene colours
+      bg <- data[, eqtl_gene]
+      bg[data[, loc$p] > pcutoff] <- "ns"
+      bg <- relevel(factor(bg, levels = unique(bg)), "ns")
+      if (is.null(.call$scheme)) scheme <- eqtl_scheme(nlevels(bg))
+      data$bg <- bg
     } else {
       data$bg <- scheme[1]
       if (loc$yvar == "logP") data$bg[data[, loc$p] < pcutoff] <- scheme[2]
-      data$bg[data[, loc$labs] == index_snp] <- scheme[3]
+      data$bg[data[, loc$labs] %in% index_snp] <- scheme[3]
       data$bg <- factor(data$bg, levels = scheme)
     }
   }
@@ -110,9 +125,19 @@ gg_scatter <- function(loc,
   data$col <- as.factor(data$col)
   # if (!"pch" %in% colnames(data)) data$pch <- 21
   # data$pch <- as.factor(data$pch)
+  # shapes
+  if (!is.null(beta)) {
+    # beta symbols
+    data[, beta] <- signif(data[, beta], 3)
+    symbol <- as.character(sign(data[, beta]))
+    ind <- data[, loc$p] > pcutoff
+    symbol[ind] <- "ns"
+    data$.beta <- factor(symbol, levels = c("ns", "1", "-1"),
+                          labels = c("ns", "up", "down"))
+  }
   
   legend.justification <- NULL
-  legend_labels <- NULL
+  legend_labels <- legend_title <- NULL
   if (!is.null(legend_pos)) {
     if (legend_pos == "topleft") {
       legend.justification <- c(0, 1)
@@ -124,11 +149,14 @@ gg_scatter <- function(loc,
       legend.position <- legend_pos
     }
     if (showLD & hasLD) {
+      legend_title <- expression({r^2})
       legend_labels <- rev(c("Index SNP", "0.8 - 1.0", "0.6 - 0.8", "0.4 - 0.6",
                              "0.2 - 0.4", "0.0 - 0.2", "NA"))
       if (is.null(index_snp)) legend_labels <- legend_labels[1:6]
-    } else legend.position = "none"
-  } else legend.position = "none"
+    } else if (!is.null(eqtl_gene)) {
+      legend_labels <- levels(bg)
+    } else legend.position <- "none"
+  } else legend.position <- "none"
   yrange <- range(data[, loc$yvar], na.rm = TRUE)
   if (yzero) yrange[1] <- min(c(0, yrange[1]))
   ycut <- -log10(pcutoff)
@@ -145,29 +173,55 @@ gg_scatter <- function(loc,
   # add labels
   if (!is.null(labels)) {
     i <- grep("index", labels, ignore.case = TRUE)
-    if (i) labels[i] <- index_snp
+    if (length(i) > 0) {
+      if (length(index_snp) == 1) {
+        labels[i] <- index_snp
+      } else {
+        labels <- labels[-i]
+        labels <- c(index_snp, labels)
+      }
+    }
     text_label_ind <- match(labels, data[, loc$labs])
     if (any(is.na(text_label_ind))) {
       message("label ", paste(labels[is.na(text_label_ind)], collapse = ", "),
               " not found")
     }
   }
-  df2 <- data[data[, loc$labs] == index_snp, ]
+  ind <- data[, loc$labs] %in% index_snp
 
   if (!recomb) {
-    # standard plot
-    p <- ggplot(data, aes(x = .data[[loc$pos]], y = .data[[loc$yvar]],
-                          color = .data$col, fill = .data$bg)) +
-      (if (loc$yvar == "logP" & !is.null(pcutoff) &
-           ycut >= yrange[1] & ycut <= yrange[2]) {
-        geom_hline(yintercept = ycut,
-                   colour = "grey", linetype = "dashed")
-      }) +
-      geom_point(shape = 21, size = size) +
-      geom_point(data = df2, shape = 23, size = size +0.3, show.legend = FALSE) +  # index SNP
+    if (is.null(beta)) {
+      # standard plot
+      p <- ggplot(data[!ind, ], aes(x = .data[[loc$pos]], y = .data[[loc$yvar]],
+                                    color = .data$col, fill = .data$bg)) +
+        (if (loc$yvar == "logP" & !is.null(pcutoff) &
+             ycut >= yrange[1] & ycut <= yrange[2]) {
+          geom_hline(yintercept = ycut,
+                     colour = "grey", linetype = "dashed")
+        }) +
+        geom_point(shape = 21, size = size) +
+        geom_point(data = data[ind, ], shape = 23, size = size,
+                   show.legend = FALSE)  # index SNP
+    } else {
+      # beta triangles
+      p <- ggplot(data, aes(x = .data[[loc$pos]], y = .data[[loc$yvar]],
+                            color = .data$col, fill = .data$bg,
+                            shape = .data$.beta)) +
+        (if (loc$yvar == "logP" & !is.null(pcutoff) &
+             ycut >= yrange[1] & ycut <= yrange[2]) {
+          geom_hline(yintercept = ycut,
+                     colour = "grey", linetype = "dashed")
+        }) +
+        geom_point(size = size) +
+        scale_shape_manual(values = c(21, 24, 25), name = NULL,
+                           labels = c("ns", expression({beta > 0}),
+                                      expression({beta < 0}))) +
+        guides(fill = guide_legend(override.aes = list(shape = 21)))
+    }
+    p <- p +
       scale_fill_manual(breaks = levels(data$bg), values = scheme,
-                        guide = guide_legend(reverse = TRUE),
-                        labels = legend_labels, name = expression({r^2})) +
+                        guide = guide_legend(reverse = showLD & hasLD),
+                        labels = legend_labels, name = legend_title) +
       scale_color_manual(breaks = levels(data$col), values = levels(data$col),
                          guide = "none") +
       # scale_shape_manual(breaks = levels(data$pch), values = levels(data$pch)) +
@@ -187,7 +241,7 @@ gg_scatter <- function(loc,
   } else {
     # recombination plot with dual y axis
     ymult <- 100 / diff(yrange)
-    p <- ggplot(data, aes(x = .data[[loc$pos]])) +
+    p <- ggplot(data[!ind, ], aes(x = .data[[loc$pos]])) +
       (if (loc$yvar == "logP" & !is.null(pcutoff) &
            ycut >= yrange[1] & ycut <= yrange[2]) {
         geom_hline(yintercept = ycut,
@@ -196,13 +250,13 @@ gg_scatter <- function(loc,
       geom_point(aes(y = .data[[loc$yvar]], color = .data$col,
                      fill = .data$bg), shape = 21, size = size, na.rm = TRUE) +
       # index SNP
-      geom_point(data = df2,
+      geom_point(data = data[ind, ],
                  aes(y = .data[[loc$yvar]], color = .data$col,
-                     fill = .data$bg), shape = 23, size = size +0.3, na.rm = TRUE,
+                     fill = .data$bg), shape = 23, size = size, na.rm = TRUE,
                  show.legend = FALSE) +
       scale_fill_manual(breaks = levels(data$bg), values = scheme,
                         guide = guide_legend(reverse = TRUE),
-                        labels = legend_labels, name = expression({r^2})) +
+                        labels = legend_labels, name =legend_title) +
       scale_color_manual(breaks = levels(data$col), values = levels(data$col),
                          guide = "none") +
       geom_line(aes(y = .data$recomb / ymult + yrange[1]), color = recomb_col,
@@ -224,7 +278,7 @@ gg_scatter <- function(loc,
       if (!xticks) theme(axis.text.x=element_blank(),
                          axis.ticks.x=element_blank())
   }
-
+  
   if (!is.null(labels)) {
     p <- p +
       geom_text_repel(data = data[text_label_ind, ],

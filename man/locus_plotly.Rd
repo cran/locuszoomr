@@ -10,11 +10,14 @@ locus_plotly(
   filter_gene_name = NULL,
   filter_gene_biotype = NULL,
   cex.text = 0.7,
-  gene_col = "blue4",
+  gene_col = ifelse(showExons, "blue4", "skyblue"),
   exon_col = "blue4",
   exon_border = "blue4",
+  showExons = TRUE,
   maxrows = 8,
+  width = 600,
   xlab = NULL,
+  blanks = "show",
   ...
 )
 }
@@ -35,14 +38,26 @@ locus_plotly(
 
 \item{exon_col}{Fill colour for exons.}
 
-\item{exon_border}{Border line colour outlining exons. Set to \code{NA} for no
-border.}
+\item{exon_border}{Border line colour outlining exons (or genes if
+\code{showExons} is \code{FALSE}). Set to \code{NA} for no border.}
+
+\item{showExons}{Logical whether to show exons or simply show whole gene as a
+rectangle. If \code{showExons = FALSE} colours are specified by \code{exon_border}
+for rectangle border and \code{gene_col} for the fill colour.}
 
 \item{maxrows}{Specifies maximum number of rows to display in gene
 annotation panel.}
 
+\item{width}{Width of plotly plot in pixels which is purely used to prevent
+overlapping text for gene names.}
+
 \item{xlab}{Title for x axis. Defaults to chromosome \code{seqname} specified
 in \code{locus}.}
+
+\item{blanks}{Controls handling of genes with blank names: \code{"fill"} replaces
+blank gene symbols with ensembl gene ids. \code{"hide"} completely hides genes
+which are missing gene symbols. \code{"show"} shows gene lines but no label
+(hovertext is still available).}
 
 \item{...}{Optional arguments passed to \code{\link[=scatter_plotly]{scatter_plotly()}} to control the
 scatter plot.}
