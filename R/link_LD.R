@@ -25,9 +25,10 @@
 #' (<1000 SNPs). However, it has a limit of 1000 SNPs which can be queried.
 #' `LDproxy()` is faster but data on some SNPs may be absent.
 #' 
-#' Note SNPs have to be correctly formatted as required by LDlinkR, either as
-#' rsID or chromosome coordinate e.g. "chr7:24966446". Default genome build is
-#' `grch37`, see `LDproxy()` or `LDmatrix()`.
+#' Note, SNPs have to be correctly formatted as required by LDlinkR, either as
+#' rsID (works with either method) or chromosome coordinate e.g. "chr7:24966446"
+#' (works with LDproxy only). Default genome build is `grch37`, see `LDproxy()`
+#' or `LDmatrix()`.
 #' 
 #' @importFrom LDlinkR LDmatrix LDexpress LDproxy
 #' @export
@@ -47,6 +48,7 @@ link_LD <- function(loc,
   start <- Sys.time()
   labs <- loc$labs
   index_snp <- loc$index_snp
+  snp_col <- if (grepl("rs", index_snp)) "RS_Number" else "Coord"
   rslist <- loc$data[, labs]
   if (length(rslist) > 1000) {
     rslist <- rslist[order(loc$data$logP, decreasing = TRUE)]
@@ -56,7 +58,7 @@ link_LD <- function(loc,
   if (method == "proxy") {
     ldp <- try(mem_LDproxy(index_snp, pop = pop, r2d = r2d, token = token, ...))
     if (!inherits(ldp, "try-error")) {
-      loc$data$ld <- ldp[match(loc$data[, labs], ldp$RS_Number), "R2"]
+      loc$data$ld <- ldp[match(loc$data[, labs], ldp[, snp_col]), "R2"]
     }
   } else {
     message("Obtaining LD on ", length(rslist), " SNPs. ", appendLF = FALSE)

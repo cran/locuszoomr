@@ -95,6 +95,15 @@ locus_plot(loc3)
 #  loc3 <- link_recomb(loc3, recomb = recomb.hg19)
 #  locus_plot(loc3)
 
+## ----eval=FALSE---------------------------------------------------------------
+#  # add column typed as a factor which is 1 for typed, 0 for imputed
+#  loc$data$typed <- factor(rbinom(n = nrow(loc$data), 1, 0.3))
+#  # convert column to shapes by adding a column called 'pch'
+#  loc$data$pch <- c(21, 24)[loc$data$typed]
+#  locus_plot(loc)
+#  # pch 21 = circles = imputed
+#  # pch 24 = triangles = typed
+
 ## ----eval = FALSE-------------------------------------------------------------
 #  # Filter by gene biotype
 #  locus_plot(loc, filter_gene_biotype = "protein_coding")
@@ -242,7 +251,7 @@ locp2 <- locus(dat, gene = 'UBE2L3', flank = 1e5, yvar = "p2",
 
 oldpar <- set_layers(1)
 scatter_plot(locp, xticks = FALSE, pcutoff = NULL, ylim = c(0, 16))
-scatter_plot(locp2, xticks = FALSE, pcutoff = NULL, chromCol = "orange",
+scatter_plot(locp2, xticks = FALSE, pcutoff = NULL, scheme = "orange",
              pch = 22, add = TRUE)
 genetracks(loc)
 par(oldpar)

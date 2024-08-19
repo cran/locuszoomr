@@ -1,6 +1,16 @@
 News
 =====
 
+# locuszoomr 0.3.2
+###### 18/08/2024
+
+* Fix for SNPs with chromosome coordinate format in `link_LD()` (only works with 
+`LDproxy` method).
+* Fix for non-human ensembl databases e.g. mouse in `locus()`.
+* Record ensembl version, organism and genome in locus objects.
+* Bugfix: give an error message if gene is not found in ensembl database in 
+`locus()`.
+
 # locuszoomr 0.3.1
 ###### 28/06/2024
 
