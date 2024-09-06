@@ -85,7 +85,7 @@ locus_plot(loc, labels = c("index", "rs140492"),
 if (require(EnsDb.Hsapiens.v75)) {
 loc3 <- locus(SLE_gwas_sub, gene = 'STAT4', flank = 1e5, LD = "r2",
               ens_db = "EnsDb.Hsapiens.v75")
-loc3 <- link_recomb(loc3, genome = "hg19")
+loc3 <- link_recomb(loc3)
 locus_plot(loc3)
 }
 
@@ -96,7 +96,7 @@ locus_plot(loc3)
 #  locus_plot(loc3)
 
 ## ----eval=FALSE---------------------------------------------------------------
-#  # add column typed as a factor which is 1 for typed, 0 for imputed
+#  # add column 'typed' as a factor which is 1 for typed, 0 for imputed
 #  loc$data$typed <- factor(rbinom(n = nrow(loc$data), 1, 0.3))
 #  # convert column to shapes by adding a column called 'pch'
 #  loc$data$pch <- c(21, 24)[loc$data$typed]
@@ -296,6 +296,13 @@ locus_plot(locp, pcutoff = NULL, panel.first = pf, panel.last = pl)
 #  gg_addgenes(p, loc)
 
 ## ----eval=FALSE---------------------------------------------------------------
+#  locus_ggplot(loc, beta = "beta")
+#  
+#  # add column 'typed' as a factor with levels "typed", "imputed"
+#  loc$data$typed <- factor(rbinom(n = nrow(loc$data), 1, 0.3), labels = c("imputed", "typed"))
+#  locus_ggplot(loc, shape = "typed")
+
+## ----eval=FALSE---------------------------------------------------------------
 #  g <- gg_genetracks(loc)
 #  library(cowplot)
 #  plot_grid(p, p, g, ncol = 1, rel_heights = c(2, 2, 1), align = "v")
@@ -349,7 +356,7 @@ knitr::include_graphics("plotly.png")
 #  all_loci <- lapply(top_snps, function(i) {
 #    loc <- locus(data = SLE_gwas, index_snp = i, fix_window = 1e6,
 #          ens_db = "EnsDb.Hsapiens.v75")
-#    link_recomb(loc, genome = "hg19")
+#    link_recomb(loc)
 #  })
 #  
 #  pdf("sle_loci.pdf")

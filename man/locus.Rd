@@ -18,7 +18,8 @@ locus(
   yvar = NULL,
   labs = NULL,
   index_snp = NULL,
-  LD = NULL
+  LD = NULL,
+  std_filter = TRUE
 )
 }
 \arguments{
@@ -68,6 +69,11 @@ specifying \code{gene}, or \code{seqname} and \code{xrange}.}
 
 \item{LD}{Optional character value to specify which column in \code{data} contains
 LD information.}
+
+\item{std_filter}{Logical, whether standard filters on chromosomes 1-22, X &
+Y, and filtering of genes to only those whose transcript ids start with
+"ENS" are applied. For users with novel genome assemblies, this probably
+needs to be set to \code{FALSE}.}
 }
 \value{
 Returns a list object of class 'locus' ready for plotting,
@@ -77,8 +83,8 @@ containing:
 \item{gene}{gene name}
 \item{ens_db}{Ensembl or AnnotationHub database}
 \item{ens_version}{Ensembl database version}
-\item{ens_organism}{Ensembl database organism}
-\item{ens_genome}{Ensembl data genome build}
+\item{organism}{Ensembl database organism}
+\item{genome}{Ensembl data genome build}
 \item{chrom}{column name in \code{data} containing chromosome information}
 \item{pos}{column name in \code{data} containing position}
 \item{p}{column name in \code{data} containing p-value}
