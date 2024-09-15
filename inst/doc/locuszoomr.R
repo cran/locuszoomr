@@ -81,13 +81,14 @@ locus_plot(loc, labels = c("index", "rs140492"),
                 label_x = c(4, -5))
 }
 
-## ----fig.dim=c(7, 6)----------------------------------------------------------
-if (require(EnsDb.Hsapiens.v75)) {
-loc3 <- locus(SLE_gwas_sub, gene = 'STAT4', flank = 1e5, LD = "r2",
-              ens_db = "EnsDb.Hsapiens.v75")
-loc3 <- link_recomb(loc3)
-locus_plot(loc3)
-}
+## ----eval=FALSE---------------------------------------------------------------
+#  loc3 <- locus(SLE_gwas_sub, gene = 'STAT4', flank = 1e5, LD = "r2",
+#                ens_db = "EnsDb.Hsapiens.v75")
+#  loc3 <- link_recomb(loc3)
+#  locus_plot(loc3)
+
+## ----out.width='80%', echo=FALSE----------------------------------------------
+knitr::include_graphics("recomb.png")
 
 ## ----eval=FALSE---------------------------------------------------------------
 #  library(rtracklayer)
