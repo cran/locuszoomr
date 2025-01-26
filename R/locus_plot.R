@@ -43,6 +43,7 @@
 #'   `showExons` is `FALSE`). Set to `NA` for no border.
 #' @param text_pos Character value of either 'top' or 'left' specifying
 #'   placement of gene name labels.
+#' @param italics Logical whether gene text is in italics.
 #' @param highlight Vector of genes to highlight.
 #' @param highlight_col Single colour or vector of colours for highlighted
 #'   genes.
@@ -89,6 +90,7 @@ locus_plot <- function(loc,
                        exon_col = 'blue4',
                        exon_border = 'blue4',
                        text_pos = 'top',
+                       italics = FALSE,
                        highlight = NULL,
                        highlight_col = "red",
                        blanks = 'fill',
@@ -104,7 +106,8 @@ locus_plot <- function(loc,
   # lower panel gene tracks at locus
   genetracks(loc, filter_gene_name, filter_gene_biotype,
              border, cex.axis, cex.lab, cex.text, gene_col, exon_col, exon_border,
-             showExons, maxrows, text_pos, xticks = (xticks == 'bottom'),
+             showExons, maxrows, text_pos, italics,
+             xticks = (xticks == 'bottom'),
              xlab = if (xticks == 'bottom') xlab else "",
              highlight = highlight, highlight_col = highlight_col,
              blanks = blanks, showRecomb = !is.na(recomb_col))

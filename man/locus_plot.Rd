@@ -23,6 +23,7 @@ locus_plot(
   exon_col = "blue4",
   exon_border = "blue4",
   text_pos = "top",
+  italics = FALSE,
   highlight = NULL,
   highlight_col = "red",
   blanks = "fill",
@@ -76,6 +77,8 @@ lower plots.}
 
 \item{text_pos}{Character value of either 'top' or 'left' specifying
 placement of gene name labels.}
+
+\item{italics}{Logical whether gene text is in italics.}
 
 \item{highlight}{Vector of genes to highlight.}
 
