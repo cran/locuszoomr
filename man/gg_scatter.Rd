@@ -14,12 +14,15 @@ gg_scatter(
   cex.lab = 1,
   xlab = NULL,
   ylab = NULL,
+  ylim = NULL,
+  ylim2 = c(0, 100),
   yzero = (loc$yvar == "logP"),
   xticks = TRUE,
   border = FALSE,
   showLD = TRUE,
   LD_scheme = c("grey", "royalblue", "cyan2", "green3", "orange", "red", "purple"),
   recomb_col = "blue",
+  recomb_offset = 0,
   legend_pos = "topleft",
   labels = NULL,
   eqtl_gene = NULL,
@@ -52,6 +55,10 @@ to \code{NULL} to disable.}
 
 \item{ylab}{y axis title.}
 
+\item{ylim}{y axis limits (y1, y2).}
+
+\item{ylim2}{Secondary y axis limits for recombination line.}
+
 \item{yzero}{Logical whether to force y axis limit to include y=0.}
 
 \item{xticks}{Logical whether x axis numbers and axis title are plotted.}
@@ -68,6 +75,9 @@ SNP.}
 \item{recomb_col}{Colour for recombination rate line if recombination rate
 data is present. Set to NA to hide the line. See \code{\link[=link_recomb]{link_recomb()}} to add
 recombination rate data.}
+
+\item{recomb_offset}{Offset from 0-1 which shifts the scatter plot up and
+recombination line plot down. Recommended value 0.1.}
 
 \item{legend_pos}{Position of legend. Set to \code{NULL} to hide legend.}
 

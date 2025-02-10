@@ -18,6 +18,8 @@
 #' @param cex.lab Specifies font size for axis titles.
 #' @param xlab x axis title.
 #' @param ylab y axis title.
+#' @param ylim y axis limits (y1, y2).
+#' @param ylim2 Secondary y axis limits for recombination line, if present.
 #' @param yzero Logical whether to force y axis limit to include y=0.
 #' @param xticks Logical whether x axis numbers and axis title are plotted.
 #' @param border Logical whether a bounding box is plotted around upper and
@@ -30,6 +32,8 @@
 #' @param recomb_col Colour for recombination rate line if recombination rate
 #'   data is present. Set to `NA` to hide the line. See [link_recomb()] to add
 #'   recombination rate data.
+#' @param recomb_offset Offset from 0-1 which shifts the scatter plot up and
+#'   recombination line plot down. Recommended value 0.1.
 #' @param legend_pos Position of legend. See [legend()]. Set to `NULL` to hide
 #'   legend.
 #' @param labels Character vector of SNP or genomic feature IDs to label. The
@@ -57,7 +61,7 @@
 #' their respective base graphics arguments, see [graphics::points()].
 #' 
 #' @seealso [locus()] [set_layers()]
-#' @importFrom graphics par legend
+#' @importFrom graphics par legend mtext
 #' @export
 #' 
 scatter_plot <- function(loc,
@@ -69,6 +73,8 @@ scatter_plot <- function(loc,
                          cex.lab = 1,
                          xlab = NULL,
                          ylab = NULL,
+                         ylim = NULL,
+                         ylim2 = c(0, 100),
                          yzero = (loc$yvar == "logP"),
                          xticks = TRUE,
                          border = FALSE,
@@ -76,6 +82,7 @@ scatter_plot <- function(loc,
                          LD_scheme = c('grey', 'royalblue', 'cyan2', 'green3', 
                                        'orange', 'red', 'purple'),
                          recomb_col = "blue",
+                         recomb_offset = 0,
                          legend_pos = 'topleft',
                          labels = NULL,
                          label_x = 4, label_y = 4,
@@ -126,23 +133,34 @@ scatter_plot <- function(loc,
     on.exit(par(op))
   }
   
-  ylim <- range(data[, loc$yvar], na.rm = TRUE)
-  if (yzero) ylim[1] <- min(c(0, ylim[1]))
-  if (!is.null(labels) & (border | recomb)) {
-    ylim[2] <- ylim[2] + diff(ylim) * 0.08
+  if (is.null(ylim)) {
+    ylim <- range(data[, loc$yvar], na.rm = TRUE)
+    if (yzero & is.null(ylim)) ylim[1] <- min(c(0, ylim[1]))
+    if (!is.null(labels) & (border | recomb)) {
+      ylim[2] <- ylim[2] + diff(ylim) * 0.08
+    }
   }
+  # offset y1
+  yd <- diff(ylim)
+  if (recomb && recomb_offset != 0) ylim[1] <- ylim[1] - yd * recomb_offset
+  
   panel.first <- quote({
     if (loc$yvar == "logP" & !is.null(pcutoff)) {
       abline(h = -log10(pcutoff), col = 'darkgrey', lty = 2)
     }
     if (recomb) {
-      ry <- loc$recomb$value * diff(ylim) / 100 + ylim[1]
+      yd2 <- diff(ylim2)
+      fy2 <- function(yy) (yy - ylim2[1]) / yd2 * yd + ylim[1]
+      ry <- fy2(loc$recomb$value)
       lines(loc$recomb$start, ry, col = recomb_col)
-      at <- 0:5 * (diff(ylim) / 5) + ylim[1]
-      axis(4, at = at, labels = 0:5 * 20,
-           las = 1, tcl = -0.3, mgp = c(1.7, 0.5, 0),
+      labs2 <- pretty(ylim2)
+      at <- fy2(labs2)
+      axis(4, at = at, labels = labs2,
+           las = 1, tcl = plot.args$tcl, mgp = plot.args$mgp,
            cex.axis = cex.axis)
-      mtext("Recombination rate (%)", 4, cex = cex.lab * par("cex"), line = 1.7)
+      mtext("Recombination rate (%)", 4, cex = cex.lab * par("cex"),
+            line = plot.args$mgp[1],
+            adj = max(c(0.5 - recomb_offset / 2, 0)))
     }
   })
   
@@ -180,8 +198,21 @@ scatter_plot <- function(loc,
                tcl = -0.3, 
                mgp = c(1.7, 0.5, 0),
                panel.first = panel.first)
+  if (recomb && recomb_offset != 0) {
+    plot.args$ylab <- ""
+    plot.args <- c(plot.args, yaxt = 'n')
+  }
   if (length(new.args)) plot.args[names(new.args)] <- new.args
   do.call("plot", plot.args)
+  
+  # offset y1 axis ticks
+  if (recomb && recomb_offset != 0) {
+    ypretty <- pretty(c(min(data[, loc$yvar], na.rm = TRUE), ylim[2]))
+    axis(2, at = ypretty, las = 1, mgp = plot.args$mgp, cex.axis = cex.axis,
+         tcl = plot.args$tcl)
+    mtext(ylab, 2, cex = cex.lab * par("cex"), line = plot.args$mgp[1],
+          adj = min(c(0.5 + recomb_offset / 2.7, 1)))
+  }
   
   # add labels
   if (!is.null(labels)) {
@@ -207,9 +238,9 @@ scatter_plot <- function(loc,
   
   if (xticks) {
     axis(1, at = axTicks(1), labels = axTicks(1) / 1e6, cex.axis = cex.axis,
-         mgp = c(1.7, 0.4, 0), tcl = -0.3)
+         mgp = c(1.7, 0.4, 0), tcl = plot.args$tcl)
   } else if (!border) {
-    axis(1, at = axTicks(1), labels = FALSE, tcl = -0.3)
+    axis(1, at = axTicks(1), labels = FALSE, tcl = plot.args$tcl)
   }
   if (!is.null(legend_pos)) {
     leg <- pt.bg <- pch <- title <- NULL

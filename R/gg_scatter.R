@@ -16,6 +16,8 @@
 #' @param cex.lab Specifies font size for axis titles.
 #' @param xlab x axis title.
 #' @param ylab y axis title.
+#' @param ylim y axis limits (y1, y2).
+#' @param ylim2 Secondary y axis limits for recombination line.
 #' @param yzero Logical whether to force y axis limit to include y=0.
 #' @param xticks Logical whether x axis numbers and axis title are plotted.
 #' @param border Logical whether a bounding box is plotted around the plot.
@@ -27,6 +29,8 @@
 #' @param recomb_col Colour for recombination rate line if recombination rate
 #'   data is present. Set to NA to hide the line. See [link_recomb()] to add
 #'   recombination rate data.
+#' @param recomb_offset Offset from 0-1 which shifts the scatter plot up and
+#'   recombination line plot down. Recommended value 0.1.
 #' @param legend_pos Position of legend. Set to `NULL` to hide legend.
 #' @param labels Character vector of SNP or genomic feature IDs to label. The
 #'   value "index" selects the highest point or index SNP as defined when
@@ -78,6 +82,8 @@ gg_scatter <- function(loc,
                        cex.lab = 1,
                        xlab = NULL,
                        ylab = NULL,
+                       ylim = NULL,
+                       ylim2 = c(0, 100),
                        yzero = (loc$yvar == "logP"),
                        xticks = TRUE,
                        border = FALSE,
@@ -85,6 +91,7 @@ gg_scatter <- function(loc,
                        LD_scheme = c('grey', 'royalblue', 'cyan2', 'green3', 
                                      'orange', 'red', 'purple'),
                        recomb_col = "blue",
+                       recomb_offset = 0,
                        legend_pos = 'topleft',
                        labels = NULL,
                        eqtl_gene = NULL,
@@ -175,8 +182,8 @@ gg_scatter <- function(loc,
     } else if (is.null(beta) & is.null(shape)) legend.position <- "none"
   }
   
-  yrange <- range(data[, loc$yvar], na.rm = TRUE)
-  if (yzero) yrange[1] <- min(c(0, yrange[1]))
+  yrange <- ylim %||% range(data[, loc$yvar], na.rm = TRUE)
+  if (is.null(ylim) && yzero) yrange[1] <- min(c(0, yrange[1]))
   ycut <- -log10(pcutoff)
   
   # recombination line
@@ -187,7 +194,20 @@ gg_scatter <- function(loc,
     data <- dplyr::bind_rows(data, df)
     data <- data[order(data[, loc$pos]), ]
     data$recomb <- zoo::na.approx(data$recomb, data[, loc$pos], na.rm = FALSE)
+    ymult <- 100 / diff(yrange)
+    yd <- diff(yrange)
+    yd2 <- diff(ylim2)
+    yrange0 <- yrange
+    yrange[1] <- yrange[1] - yd * recomb_offset
+    outside <- df$recomb < ylim2[1] | df$recomb > (ylim2[2] + yd2 * recomb_offset)
+    if (any(outside))
+      nmessage(sum(outside), " recombination value(s) outside scale range (`ylim2`)")
+    fy2 <- function(yy) (yy - ylim2[1]) / yd2 * yd + yrange[1]
+    inv_fy2 <- function(yy) (yy - yrange[1]) / yd * yd2 + ylim2[1]
   }
+  outside <- loc$data[, loc$yvar] < yrange[1] | loc$data[, loc$yvar] > yrange[2]
+  if (any(outside))
+    nmessage(sum(outside), " value(s) outside scale range (`ylim`)")
   data[, loc$pos] <- data[, loc$pos] / 1e6
 
   # add labels
@@ -255,7 +275,7 @@ gg_scatter <- function(loc,
       scale_color_manual(breaks = levels(data$col), values = levels(data$col),
                          guide = "none") +
       # scale_shape_manual(breaks = levels(data$pch), values = levels(data$pch)) +
-      xlim(loc$xrange[1] / 1e6, loc$xrange[2] / 1e6) + ylim(yrange[1], NA) +
+      xlim(loc$xrange[1] / 1e6, loc$xrange[2] / 1e6) + ylim(yrange) +
       labs(x = xlab, y = ylab) +
       theme_classic() +
       theme(axis.text = element_text(colour = "black", size = 10 * cex.axis),
@@ -270,7 +290,6 @@ gg_scatter <- function(loc,
                          axis.ticks.x=element_blank())
   } else {
     # recombination plot with dual y axis
-    ymult <- 100 / diff(yrange)
     if (is.null(shape)) {
       # standard plot
       p <- ggplot(data[!ind, ], aes(x = .data[[loc$pos]])) +
@@ -313,16 +332,22 @@ gg_scatter <- function(loc,
                         labels = legend_labels, name = legend_title) +
       scale_color_manual(breaks = levels(data$col), values = levels(data$col),
                          guide = "none") +
-      geom_line(aes(y = .data$recomb / ymult + yrange[1]), color = recomb_col,
+      geom_line(aes(y = fy2(.data$recomb)), color = recomb_col,
                 na.rm = TRUE) +
       scale_y_continuous(name = ylab,
-                         sec.axis = sec_axis(~(. - yrange[1]) * ymult,
-                                             name = "Recombination rate (%)")) +
+                         limits = yrange, breaks = pretty(yrange0),
+                         sec.axis = sec_axis(inv_fy2,
+                                             name = "Recombination rate (%)",
+                                             breaks = pretty(ylim2))) +
       xlim(loc$xrange[1] / 1e6, loc$xrange[2] / 1e6) +
       xlab(xlab) +
       theme_classic() +
       theme(axis.text = element_text(colour = "black", size = 10 * cex.axis),
             axis.title = element_text(size = 10 * cex.lab),
+            axis.title.y.left = element_text(
+              hjust = min(c(0.5 + recomb_offset /3, 0.9))),
+            axis.title.y.right = element_text(
+              hjust = min(c(0.5 + recomb_offset /2, 1))),
             legend.justification = legend.justification,
             legend.position = legend.position,
             legend.title.align = 0.5,
@@ -347,3 +372,13 @@ gg_scatter <- function(loc,
   p
 }
 
+
+nmessage <- function(...) {
+  argList <- list(...)
+  n_arg <- which(sapply(argList, class) %in% c("numeric", "integer"))
+  n <- argList[[n_arg]]
+  if (n == 0) return()
+  msg <- paste0(argList)
+  msg <- if (n == 1) gsub("\\(s\\)", "", msg) else gsub("\\(s\\)", "s", msg)
+  message(msg)
+}

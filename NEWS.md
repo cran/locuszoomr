@@ -1,9 +1,28 @@
 News
 =====
 
+# locuszoomr 0.3.7
+###### 05/02/2025
+
+### New features
+* Added `recomb_offset` argument to enable y offset to shift scatter points up 
+slightly away from the recombination line to reduce the overlap. Works with both 
+`locus_plot()` and `locus_ggplot()`.
+* Added `ylim` and `ylim2` arguments to `scatter_plot()` and `gg_scatter()` to 
+make it easier to set y axis and secondary y axis (recombination line) limits in 
+`locus_plot()` and `locus_ggplot()`.
+
+### Important change
+* Changed the order of `data` and `gene` arguments in `locus()` since most users 
+specify the data object first.
+
+### Fixes
+* Fixed `ylim` issue affecting secondary y axis with recombination line.
+
 # locuszoomr 0.3.6
 ###### 09/01/2025
 * Add option to show gene names in italics.
+* Added citation.
 
 # locuszoomr 0.3.5
 ###### 15/09/2024
