@@ -1,6 +1,6 @@
-90f91d06106aaea3eef2e7d5c92fddd9 *DESCRIPTION
+80817b887d271e1c469ecfb73d3610bb *DESCRIPTION
 8c791f7793d5d1a0ee6fc9bd93711576 *NAMESPACE
-2821a2220c270a4c31fe28f9a897a4ba *NEWS.md
+ea637aca52b63ae4be983192b03b7f23 *NEWS.md
 bdd0a7cf86e836f49117bb064ea9d364 *R/SLE_gwas_sub.R
 a8802f8820361fece511117de5021ea5 *R/eqtl_plot.R
 e3177186f3c69d9e17410c029b10b713 *R/genetrack_ly.R
@@ -8,12 +8,12 @@ bb4f5787d106c26b5cf553eee5933d24 *R/genetracks.R
 d38936826f9c86f41ec550bcd815d92b *R/genetracks_grob.R
 acee92623ac9db1ff7b8ba8ca1389b8a *R/gg_addgenes.R
 3df829240585ccda4c4b6e5a96b221c7 *R/gg_genetracks.R
-afed2a683cc65b91f1da9580d7770370 *R/gg_scatter.R
+1e7ac5a1e1d951a9228f62e962105a34 *R/gg_scatter.R
 7f22aec7ab4d3704e0b944e5eacf6982 *R/line_plot.R
 7fe243c777aa9057e1c6763f8a15c0a5 *R/link_LD.R
 d811ef3d7f18656b56f38c0b9a854bf2 *R/link_eqtl.R
 a1a152f54766bed6c427ff7f039c3b5f *R/link_recomb.R
-cc0bebddceceeb59ddb6e07f1fa7509f *R/locus.R
+ad80c2fc2cdc49c581fdf93db2f67fa7 *R/locus.R
 8377d0ddce7eff06dcf5533d2e250f9b *R/locus_ggplot.R
 b40c3fb1fcd78ed86a7f677c37c90646 *R/locus_plot.R
 c5597b8809ffe5997bebf14c180c5c68 *R/locus_plotly.R
@@ -27,9 +27,9 @@ c5597b8809ffe5997bebf14c180c5c68 *R/locus_plotly.R
 9ddaae80993c3c02702cc4d590a344b3 *build/vignette.rds
 dbecf9816f3ae7e6bedf94db66a8ff41 *data/SLE_gwas_sub.rdata
 d910bfc951daf44bab020a74457f584f *inst/CITATION
-6d66a122891f617031bccf8b3edbbd04 *inst/doc/locuszoomr.R
-237a1891cada4f33a83c057f0e442345 *inst/doc/locuszoomr.Rmd
-0b44c0b2f87a8158ff345d4297fdfef7 *inst/doc/locuszoomr.html
+9dd59512b42d6756e82d1b538ffbcb43 *inst/doc/locuszoomr.R
+790b1e2f2369482936aebbc65bf49f43 *inst/doc/locuszoomr.Rmd
+3a1ca5b9d2fd74dba365da901a24afde *inst/doc/locuszoomr.html
 ab622e1bb7e3154052501fe07bc771c5 *man/SLE_gwas_sub.Rd
 9573e7ed4e3c2c216cee3a86c09a611a *man/eqtl_plot.Rd
 4ac7a958fabab5066ea90b813de25554 *man/genetrack_ly.Rd
@@ -42,7 +42,7 @@ bd00d7026f9e91e46c20bf87c06fc1f2 *man/gg_scatter.Rd
 f21baf3a3543a0137ba0ffa564574099 *man/link_LD.Rd
 d2dd8ebe45dd2e06f779d318edc64e41 *man/link_eqtl.Rd
 bebd9f1f9ac5a49b0442919c6798ff3e *man/link_recomb.Rd
-ede003efa0d0fefc096763692e8e42a2 *man/locus.Rd
+089ed7b0e1ed73ccb483c53f28790c49 *man/locus.Rd
 66d1ab0b669b4706d1204b4a146bc626 *man/locus_ggplot.Rd
 808b02d700c9e5027339f623c41e78ed *man/locus_plot.Rd
 068f46d289e05b373952431117fb2554 *man/locus_plotly.Rd
@@ -53,6 +53,6 @@ ede003efa0d0fefc096763692e8e42a2 *man/locus.Rd
 3c6071c47e266314bc9f942c73c01179 *man/scatter_plotly.Rd
 de94a995ab8103bdda8bd3d953d2f193 *man/set_layers.Rd
 510a1059fabfac0215a5a9bf5bc6923d *vignettes/eqtl_overlay.png
-237a1891cada4f33a83c057f0e442345 *vignettes/locuszoomr.Rmd
+790b1e2f2369482936aebbc65bf49f43 *vignettes/locuszoomr.Rmd
 afce94c9b9d839219dcb46a8ac186f22 *vignettes/plotly.png
 e4745098b34b452155c7fd1f4e2f527f *vignettes/recomb.png
