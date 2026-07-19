@@ -28,6 +28,7 @@
 #' @param highlight Vector of genes to highlight.
 #' @param highlight_col Single colour or vector of colours for highlighted
 #'   genes.
+#' @param prioritise Vector of genes to be placed first in the gene tracks.
 #' @param blanks Controls handling of genes with blank names: `"fill"` replaces
 #'   blank gene symbols with ensembl gene ids. `"hide"` hides genes which are
 #'   missing gene symbols.
@@ -41,8 +42,7 @@
 #' grid::grid.newpage()
 #' grid::grid.draw(g)
 #' }
-#' @importFrom grid viewport rectGrob textGrob xaxisGrob gList gTree gpar
-#'   polylineGrob
+#' @importFrom grid viewport rectGrob textGrob xaxisGrob gList gTree gpar polylineGrob
 #' @export
 
 genetracks_grob <- function(locus,
@@ -59,6 +59,7 @@ genetracks_grob <- function(locus,
                             italics = FALSE,
                             highlight = NULL,
                             highlight_col = "red",
+                            prioritise = highlight,
                             blanks = c("fill", "hide")) {
   if (!inherits(locus, "locus")) stop("Object of class 'locus' required")
   blanks <- match.arg(blanks)
@@ -80,7 +81,7 @@ genetracks_grob <- function(locus,
                      highlight, highlight_col)
   
   TX <- mapRow(TX, xlim = xrange, cex.text = cex.text, text_pos = text_pos,
-               blanks = blanks)
+               blanks = blanks, prioritise = prioritise)
   maxrows <- if (is.null(maxrows)) max(TX$row) else min(c(max(TX$row), maxrows))
   if (max(TX$row) > maxrows) message(max(TX$row), " tracks needed to show all genes")
   TX <- TX[TX$row <= maxrows, ]
@@ -168,8 +169,8 @@ exonGrob <- function(TX, EX, showExons, exheight) {
 
 genetextGrob <- function(text_pos, TX, xrange, cex.text, italics) {
   if (text_pos == "top") {
-    tfilter <- which(TX$tmin > (xrange[1] - diff(xrange) * 0.04) & 
-                       (TX$tmax < xrange[2] + diff(xrange) * 0.04))
+    tfilter <- which(TX$tmin >= (xrange[1] - diff(xrange) * 0.04) & 
+                       (TX$tmax <= xrange[2] + diff(xrange) * 0.04))
     tg <- lapply(tfilter, function(i) {
       textGrob(label = bquote_gene(TX$gene_name[i], TX$strand[i], italics),
       x = unit(TX$mean[i], "native"),
@@ -177,7 +178,7 @@ genetextGrob <- function(text_pos, TX, xrange, cex.text, italics) {
       gp = gpar(cex = cex.text), vp = "genetrack")
     })
   } else if (text_pos == "left") {
-    tfilter <- which(TX$tmin > xrange[1])
+    tfilter <- which(TX$tmin >= xrange[1])
     tg <- lapply(tfilter, function(i) {
       textGrob(label = bquote_gene(TX$gene_name[i], TX$strand[i], italics),
       x = unit(pmax(TX$start[i],

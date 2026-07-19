@@ -24,6 +24,7 @@ locus_ggplot(
   xlab = NULL,
   highlight = NULL,
   highlight_col = "red",
+  prioritise = highlight,
   blanks = "fill",
   ...
 )
@@ -36,7 +37,7 @@ locus_ggplot(
 \item{filter_gene_name}{Vector of gene names to display.}
 
 \item{filter_gene_biotype}{Vector of gene biotypes to be filtered. Use
-\code{\link[ensembldb:EnsDb-class]{ensembldb::listGenebiotypes()}} to display possible biotypes. For example,
+\code{\link[ensembldb:listGenebiotypes]{ensembldb::listGenebiotypes()}} to display possible biotypes. For example,
 \code{ensembldb::listGenebiotypes(EnsDb.Hsapiens.v75)}}
 
 \item{border}{Logical whether a bounding box is plotted.}
@@ -75,6 +76,8 @@ placement of gene name labels.}
 
 \item{highlight_col}{Single colour or vector of colours for highlighted
 genes.}
+
+\item{prioritise}{Vector of genes to be placed first in the gene tracks.}
 
 \item{blanks}{Controls handling of genes with blank names: \code{"fill"} replaces
 blank gene symbols with ensembl gene ids. \code{"hide"} hides genes which are

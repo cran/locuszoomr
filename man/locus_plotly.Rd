@@ -18,6 +18,7 @@ locus_plotly(
   maxrows = 8,
   width = 600,
   xlab = NULL,
+  prioritise = NULL,
   blanks = "show",
   ...
 )
@@ -32,7 +33,7 @@ Alternatively a vector of length 2 of height in pixels passed to
 \item{filter_gene_name}{Vector of gene names to display.}
 
 \item{filter_gene_biotype}{Vector of gene biotypes to be filtered. Use
-\code{\link[ensembldb:EnsDb-class]{ensembldb::listGenebiotypes()}} to display possible biotypes. For example,
+\code{\link[ensembldb:listGenebiotypes]{ensembldb::listGenebiotypes()}} to display possible biotypes. For example,
 \code{ensembldb::listGenebiotypes(EnsDb.Hsapiens.v75)}}
 
 \item{cex.text}{Font size for gene text.}
@@ -58,6 +59,8 @@ overlapping text for gene names.}
 
 \item{xlab}{Title for x axis. Defaults to chromosome \code{seqname} specified
 in \code{locus}.}
+
+\item{prioritise}{Vector of genes to be placed first in the gene tracks.}
 
 \item{blanks}{Controls handling of genes with blank names: \code{"fill"} replaces
 blank gene symbols with ensembl gene ids. \code{"hide"} completely hides genes

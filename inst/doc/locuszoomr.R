@@ -3,17 +3,18 @@ knitr::opts_chunk$set(
   collapse = TRUE
 )
 library(locuszoomr)
+ensdb_eval <- requireNamespace("EnsDb.Hsapiens.v75", quietly = TRUE)
 
-## ----eval = FALSE-------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 # if (!requireNamespace("BiocManager", quietly = TRUE))
 #   install.packages("BiocManager")
 # BiocManager::install("ensembldb")
 # BiocManager::install("EnsDb.Hsapiens.v75")
 
-## ----eval = FALSE-------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 # install.packages("locuszoomr")
 
-## ----eval = FALSE-------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 # devtools::install_github("myles-lewis/locuszoomr")
 
 ## -----------------------------------------------------------------------------
@@ -21,27 +22,17 @@ library(locuszoomr)
 data(SLE_gwas_sub)  ## limited subset of data from SLE GWAS
 head(SLE_gwas_sub)
 
-## ----eval=FALSE---------------------------------------------------------------
-# library(EnsDb.Hsapiens.v75)
-# loc <- locus(data = SLE_gwas_sub, gene = 'UBE2L3', flank = 1e5,
-#              ens_db = "EnsDb.Hsapiens.v75")
-# summary(loc)
-# locus_plot(loc)
-
-## ----echo=FALSE, message=FALSE, fig.dim=c(8, 7)-------------------------------
-if (require(EnsDb.Hsapiens.v75)) {
+## ----eval=ensdb_eval, message=FALSE, fig.dim=c(8, 7)--------------------------
+library(EnsDb.Hsapiens.v75)
 loc <- locus(data = SLE_gwas_sub, gene = 'UBE2L3', flank = 1e5,
              ens_db = "EnsDb.Hsapiens.v75")
 summary(loc)
 locus_plot(loc)
-}
 
 ## ----eval=FALSE---------------------------------------------------------------
 # library(AnnotationHub)
 # ah <- AnnotationHub()
 # query(ah, c("EnsDb", "Homo sapiens"))
-
-## ----eval=FALSE---------------------------------------------------------------
 # ## AnnotationHub with 25 records
 # ## # snapshotDate(): 2023-04-25
 # ## # $dataprovider: Ensembl
@@ -69,7 +60,7 @@ locus_plot(loc)
 #              ens_db = ensDb_v106)
 # locus_plot(loc)
 
-## ----eval = FALSE-------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 # # Locus plot using SLE GWAS data from Bentham et al 2015
 # # FTP download full summary statistics from
 # # https://www.ebi.ac.uk/gwas/studies/GCST003156
@@ -80,18 +71,10 @@ locus_plot(loc)
 # loc <- link_LD(loc, token = "your_token")
 # locus_plot(loc)
 
-## ----eval=FALSE---------------------------------------------------------------
-# loc <- locus(SLE_gwas_sub, gene = 'UBE2L3', flank = 1e5, LD = "r2",
-#              ens_db = "EnsDb.Hsapiens.v75")
-# locus_plot(loc, labels = c("index", "rs140492"),
-#                 label_x = c(4, -5))
-
-## ----echo=FALSE, message=FALSE, fig.dim=c(8, 7)-------------------------------
-if (require(EnsDb.Hsapiens.v75)) {
+## ----eval=ensdb_eval, message=FALSE, fig.dim=c(8, 7)--------------------------
 loc <- locus(SLE_gwas_sub, gene = 'UBE2L3', flank = 1e5, LD = "r2",
              ens_db = "EnsDb.Hsapiens.v75")
 locus_plot(loc, labels = c("index", "rs140492"), label_x = c(4, -5))
-}
 
 ## ----eval=FALSE---------------------------------------------------------------
 # loc3 <- locus(SLE_gwas_sub, gene = 'STAT4', flank = 1e5, LD = "r2",
@@ -125,28 +108,17 @@ knitr::include_graphics("recomb.png")
 # locus_plot(loc, filter_gene_name = c('UBE2L3', 'RIMBP3C', 'YDJC', 'PPIL2',
 #                                      'PI4KAP2', 'MIR301B'))
 
-## ----eval=FALSE---------------------------------------------------------------
-# genetracks(loc, highlight = "UBE2L3")
-
-## ----echo=FALSE, fig.dim=c(7, 3.5)--------------------------------------------
-if (require(EnsDb.Hsapiens.v75)) {
+## ----eval=ensdb_eval, fig.dim=c(7, 3.5)---------------------------------------
 genetracks(loc, highlight = "UBE2L3")
-}
 
-## ----eval=FALSE---------------------------------------------------------------
-# # Limit the number of tracks
-# # Filter by gene biotype
-# # Customise colours
-# genetracks(loc, maxrows = 3, filter_gene_biotype = 'protein_coding',
-#            gene_col = 'grey', exon_col = 'orange', exon_border = 'darkgrey')
-
-## ----echo=FALSE, fig.dim=c(7, 2.5)--------------------------------------------
-if (require(EnsDb.Hsapiens.v75)) {
+## ----eval=ensdb_eval, fig.dim=c(7, 2.5)---------------------------------------
+# Limit the number of tracks
+# Filter by gene biotype
+# Customise colours
 genetracks(loc, maxrows = 3, filter_gene_biotype = 'protein_coding',
            gene_col = 'grey', exon_col = 'orange', exon_border = 'darkgrey')
-}
 
-## ----eval = FALSE-------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 # loc00 <- locus(gene = 'UBE2L3', flank = 1e5, ens_db = "EnsDb.Hsapiens.v75")
 # 
 # genetracks(loc00)  # base graphics
@@ -184,17 +156,10 @@ genetracks(loc, maxrows = 3, filter_gene_biotype = 'protein_coding',
 ## ----out.width='60%', fig.align="center", echo=FALSE--------------------------
 knitr::include_graphics("eqtl_overlay.png")
 
-## ----eval=FALSE---------------------------------------------------------------
-# locb <- locus(SLE_gwas_sub, gene = 'UBE2L3', flank = 1e5, yvar = "beta",
-#               ens_db = "EnsDb.Hsapiens.v75")
-# locus_plot(locb)
-
-## ----echo=FALSE, message=FALSE, fig.dim=c(8, 7)-------------------------------
-if (require(EnsDb.Hsapiens.v75)) {
+## ----eval=ensdb_eval, message=FALSE, fig.dim=c(8, 7)--------------------------
 locb <- locus(SLE_gwas_sub, gene = 'UBE2L3', flank = 1e5, yvar = "beta",
               ens_db = "EnsDb.Hsapiens.v75")
 locus_plot(locb)
-}
 
 ## ----eval=FALSE---------------------------------------------------------------
 # genes <- c("STAT4", "IRF5", "UBE2L3")
@@ -296,49 +261,28 @@ genetracks(loc)
 par(oldpar)
 }
 
-## ----eval=FALSE---------------------------------------------------------------
-# # add vertical lines for gene of interest under the main plot
-# pf <- quote({
-#   v <- locp$TX[locp$TX$gene_name == "UBE2L3", c("start", "end")]
-#   abline(v = v, col = "orange")
-# })
-# 
-# pl <- quote({
-#   # add custom text label for index SNP
-#   lx <- locp$data$pos[locp$data$rsid == locp$index_snp]
-#   ly <- locp$data$logP[locp$data$rsid == locp$index_snp]
-#   text(lx, ly, locp$index_snp, pos = 4, cex = 0.8)
-#   # add extra points
-#   px <- rep(22.05e6, 3)
-#   py <- 10:12
-#   points(px, py, pch = 21, bg = "green")
-#   # add custom legend
-#   legend("topleft", legend = c("group A", "group B"),
-#          pch = 21, pt.bg = c("blue", "green"), bty = "n")
-# })
-# 
-# locus_plot(locp, pcutoff = NULL, panel.first = pf, panel.last = pl)
-
-## ----echo=FALSE, fig.dim = c(7,7)---------------------------------------------
-if (require(EnsDb.Hsapiens.v75)) {
+## ----eval=ensdb_eval, fig.dim = c(7,7)----------------------------------------
+# add vertical lines for gene of interest under the main plot
 pf <- quote({
   v <- locp$TX[locp$TX$gene_name == "UBE2L3", c("start", "end")]
   abline(v = v, col = "orange")
 })
 
 pl <- quote({
+  # add custom text label for index SNP
   lx <- locp$data$pos[locp$data$rsid == locp$index_snp]
   ly <- locp$data$logP[locp$data$rsid == locp$index_snp]
   text(lx, ly, locp$index_snp, pos = 4, cex = 0.8)
+  # add extra points
   px <- rep(22.05e6, 3)
   py <- 10:12
   points(px, py, pch = 21, bg = "green")
+  # add custom legend
   legend("topleft", legend = c("group A", "group B"),
          pch = 21, pt.bg = c("blue", "green"), bty = "n")
 })
 
 locus_plot(locp, pcutoff = NULL, panel.first = pf, panel.last = pl)
-}
 
 ## ----eval=FALSE---------------------------------------------------------------
 # locus_ggplot(loc)
@@ -378,18 +322,10 @@ locus_plot(locp, pcutoff = NULL, panel.first = pf, panel.last = pl)
 # # patchwork method 2
 # wrap_plots(p, p, g, ncol = 1)
 
-## ----eval=FALSE---------------------------------------------------------------
-# library(cowplot)
-# p1 <- locus_ggplot(loc, labels = "index", nudge_x = 0.03)
-# p2 <- locus_ggplot(loc2, legend_pos = NULL)
-# plot_grid(p1, p2, ncol = 2)
-
-## ----echo=FALSE, fig.dim = c(12, 7)-------------------------------------------
-if (require(EnsDb.Hsapiens.v75)) {
+## ----eval=ensdb_eval, fig.dim = c(12, 7)--------------------------------------
 p1 <- locus_ggplot(loc, labels = "index", nudge_x = 0.03)
 p2 <- locus_ggplot(loc2, legend_pos = NULL)
 cowplot::plot_grid(p1, p2, ncol = 2)
-}
 
 ## ----eval=FALSE---------------------------------------------------------------
 # library(ggpubr)
