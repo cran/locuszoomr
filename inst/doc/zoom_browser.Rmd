@@ -109,6 +109,22 @@ clicking on other points can re-base the LD to alternative SNPs.
 knitr::include_graphics("zoom2.png")
 ```
 
+### Overlay eQTL data via LDlink
+
+The LDlink API can also be queried for eQTL data which can be overlaid on the
+GWAS plots. Click on the `Get eQTL` button in the `r shiny::icon("gear")`
+settings dropdown menu. The plot below shows how the top GWAS SNPs in the *IRF5* 
+locus are linked to an *IRF5* eQTL.
+
+Each SNP may have an eQTL which drives gene expression across multiple tissues
+and some SNPs have eQTL with multiple genes. So by default the overlay plots
+show the eQTL at each SNP with the lowest p-value. eQTL genes and tissues can be
+filtered using picker menus which become available in the Settings menu.
+
+```{r, out.width='100%', echo=FALSE}
+knitr::include_graphics("zoom_eqtl.png")
+```
+
 ### Dual GWAS browsing
 
 Using the `data2` argument, users can browse 2 GWAS at the same time. Shown
@@ -126,17 +142,17 @@ locus plot. LD information can also be overlaid and either locus plot can be
 clicked to rebase the LD information.
 
 ```{r eval=FALSE}
-# load ensembl Homo sapiens database v110
+# load ensembl Homo sapiens database v113
 library(AnnotationHub)
 ah <- AnnotationHub()
 query(ah, c("EnsDb", "Homo sapiens"))  # shows latest versions
-ensDb_v110 <- ah[["AH113665"]]
+ensDb_v113 <- ah[["AH119325"]]
 
 # load hg38 recombination rate data downloaded from UCSC
 recomb1000G <- import.bw("/../recomb1000GAvg.bw")
 
 # double GWAS, eQTL first
-zoom(eqtlres, data2 = RA_gwas, ens_db = ensDb_v110,
+zoom(eqtlres, data2 = RA_gwas, ens_db = ensDb_v113,
      eqtl_gene = "gene", beta = c("beta", NA),
      recomb = recomb1000G, ld_token = "my_token")
 ```
@@ -175,5 +191,5 @@ vbaf006, [doi:10.1093/bioadv/vbaf006](https://doi.org/10.1093/bioadv/vbaf006)
 
 ### References
 
-1. Goldmann, K. et al. *Ann Rheum Dis* 2023; doi:10.1136/ard-2023-224540
-2. Ishigaki, K. et al. *Nat Genet* 2022; 54: 1640-1651, doi:10.1038/s41588-022-01213-w
+1. Goldmann, K. et al. *Ann Rheum Dis* 2023; [doi:10.1136/ard-2023-224540](https://doi.org/10.1136/ard-2023-224540)
+2. Ishigaki, K. et al. *Nat Genet* 2022; 54: 1640-1651, [doi:10.1038/s41588-022-01213-w](https://doi.org/10.1038/s41588-022-01213-w)

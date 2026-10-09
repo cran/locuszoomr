@@ -37,8 +37,9 @@
 #'   SNP p-values. See `chrom`.
 #' @param labs Determines which column in `data` (and optionally `data2`)
 #'   contains SNP rs IDs. See `chrom`.
-#' @param scheme Vector of 3 colours for main Manhattan plot: 1st, 2nd colours
-#'   for alternating chromosomes, 3rd colour for significant points.
+#' @param scheme Vector of 4 colours for main Manhattan plot: 1st, 2nd colours
+#'   for alternating chromosomes, 3rd colour for significant points, 4th colour
+#'   for highlighting chromosomes.
 #' @param scheme2 Vector of colours for 2nd Manhattan plot.
 #' @param pcutoff Cut-off for p value significance. Defaults to p = 5e-08. Set
 #'   to `NULL` to disable.
@@ -79,11 +80,7 @@
 #' @importFrom shiny renderUI reactiveValues reactive observe observeEvent radioButtons
 #' @importFrom shiny reactiveVal validate need renderText updateTextInput outputOptions
 #' @importFrom shiny showNotification removeNotification HTML downloadButton downloadHandler
-#' @importFrom shinyFeedback useShinyFeedback hideFeedback showFeedback
-#' @importFrom shinyWidgets pickerInput pickerOptions dropdown
-#' @importFrom shinycssloaders withSpinner
 #' @importFrom htmltools tags br
-#' @importFrom DT datatable formatSignif
 #' @importFrom gtools mixedsort
 #' @importFrom stats as.formula setNames
 #' @importFrom grDevices dev.off pdf
@@ -93,8 +90,8 @@ zoom <- function(data, ens_db,
                  chrom = NULL, pos = NULL, p = NULL, labs = NULL,
                  data2 = NULL,
                  traits = NULL,
-                 scheme = c('royalblue', 'skyblue', 'red'),
-                 scheme2 = c("#33a02c", "#b2df8a", "purple"),
+                 scheme = c('royalblue', 'skyblue', 'red', "#00CD00"),
+                 scheme2 = c("#33a02c", "#b2df8a", "purple", "red"),
                  pcutoff = 5e-8,
                  eqtl_gene = NULL,
                  beta = NULL,
@@ -108,6 +105,15 @@ zoom <- function(data, ens_db,
                  seq_filter = c(1:22, 'X', 'Y'),
                  AnnotationDb = "org.Hs.eg.db",
                  align = TRUE) {
+  if (!requireNamespace("shinycssloaders", quietly = TRUE))
+    stop("Need shinycssloaders package", call. = FALSE)
+  if (!requireNamespace("shinyWidgets", quietly = TRUE))
+    stop("Need shinyWidgets package", call. = FALSE)
+  if (!requireNamespace("shinyFeedback", quietly = TRUE))
+    stop("Need shinyFeedback package", call. = FALSE)
+  if (!requireNamespace("DT", quietly = TRUE))
+    stop("Need DT package", call. = FALSE)
+  
   dat_name <- deparse(substitute(data))
   data <- data.frame(data)
   # autodetect headings
@@ -166,6 +172,7 @@ zoom <- function(data, ens_db,
   }
   
   show_ld <- nzchar(ld_token)
+  show_eqtl <- show_ld & is.null(eqtl_gene)
   
   # apply min_p_snp to data for manhat?
   # smallest floating point
@@ -222,12 +229,12 @@ zoom <- function(data, ens_db,
         align-items: center;
       }"))
     ),
-    useShinyFeedback(),
+    shinyFeedback::useShinyFeedback(),
     tabsetPanel(
       tabPanel("Plot",
                fluidRow(
                  column(11,
-                        withSpinner(
+                        shinycssloaders::withSpinner(
                           plotlyOutput("manhattan", width = "85vw", height = height[1]),
                           type = 8, size = 0.7)
                  ),
@@ -239,7 +246,7 @@ zoom <- function(data, ens_db,
                (if (man2) {
                  fluidRow(
                    column(11,
-                          withSpinner(
+                          shinycssloaders::withSpinner(
                             plotlyOutput("manhattan2", width = "85vw", height = height[1]),
                             type = 8, size = 0.7)
                    ),
@@ -255,7 +262,7 @@ zoom <- function(data, ens_db,
                         conditionalPanel('input.show_chrom & output.coords_ok',
                                          fluidRow(
                                            column(11,
-                                                  withSpinner(
+                                                  shinycssloaders::withSpinner(
                                                     plotlyOutput("chrom", width = "85vw", height = height[2]),
                                                     type = 8, size = 0.7)
                                            ),
@@ -274,7 +281,7 @@ zoom <- function(data, ens_db,
                           conditionalPanel('input.show_chrom & output.coords_ok',
                                            fluidRow(
                                              column(11,
-                                                    withSpinner(
+                                                    shinycssloaders::withSpinner(
                                                       plotlyOutput("chrom2", width = "85vw", height = height[2]),
                                                       type = 8, size = 0.7)
                                              ),
@@ -316,31 +323,38 @@ zoom <- function(data, ens_db,
                           cellWidths = c("75%", "25%")
                         )),
                  column(1,
-                        dropdown(
+                        shinyWidgets::dropdown(
                           (if (!is.null(recomb)) {
                             checkboxInput("recomb", "show recombination rate", value = TRUE)
                           } else NULL),
                           checkboxInput("alltracks", "show all gene tracks"),
+                          shinyWidgets::pickerInput("biotype", h5("Select gene biotypes"),
+                                      choices = biotypes, selected = biotypes,
+                                      multiple = TRUE,
+                                      options = shinyWidgets::pickerOptions(actionsBox = TRUE,
+                                                              selectedTextFormat = 'count > 1')),
                           (if (show_ld) {
                             fluidRow(
                               column(12,
-                                     h5("Linkage disequilibrium"),
+                                     h5("LDlink tools"),
                                      actionButton("ld_get", "Get LD", icon = icon("circle-nodes"),
                                                   class = "btn-primary btn-sm"),
+                                     (if (show_eqtl) {
+                                       actionButton("eqtl_get", "Get eQTL", icon = icon("compass"),
+                                                    class = "btn-info btn-sm")
+                                     }),
                                      actionButton("ld_clear", "Clear",
                                                   class = "btn-default btn-sm")
                               ))
-                          } else NULL),
-                          pickerInput("biotype", h5("Select gene biotypes"),
-                                      choices = biotypes, selected = biotypes,
-                                      multiple = TRUE,
-                                      options = pickerOptions(actionsBox = TRUE,
-                                                              selectedTextFormat = 'count > 1')),
-                          radioButtons("export", h5("Export"),
-                                       list(pdf = "pdf", plotly = "rds"), inline = TRUE),
+                          }),
+                          (if (show_eqtl) {
+                            uiOutput("ui_link_genes")
+                          }),
                           (if (!is.null(eqtl_gene)) {
                             uiOutput("ui_genes")
-                          } else NULL),
+                          }),
+                          radioButtons("export", h5("Export"),
+                                       list(pdf = "pdf", plotly = "rds"), inline = TRUE),
                           right = TRUE, icon = icon("gear")
                         ))
                  ),
@@ -384,7 +398,7 @@ zoom <- function(data, ens_db,
         layout(margin = list(t = 5),
                shapes = list(
                  list(type = "rect",
-                      line = list(width = 1, color = "#00CD00"),
+                      line = list(width = 1, color = scheme[4]),
                       x0 = xr[1] / 1e6,
                       x1 = xr[2] / 1e6, y0 = 0, y1 = 1,
                       xref = "x", yref = "paper", layer = "above")))
@@ -506,7 +520,7 @@ zoom <- function(data, ens_db,
           layout(margin = list(t = 5),
                  shapes = list(
                    list(type = "rect",
-                        line = list(width = 1, color = "red"),
+                        line = list(width = 1, color = scheme2[4]),
                         x0 = xr[1] / 1e6,
                         x1 = xr[2] / 1e6, y0 = 0, y1 = 1,
                         xref = "x", yref = "paper", layer = "above")))
@@ -604,6 +618,9 @@ zoom <- function(data, ens_db,
     genes <- reactiveValues(x = NULL)
     ld_snp <- reactiveVal(NULL)
     cur_index <- reactiveVal(NULL)
+    eqtl_snp <- reactiveVal(NULL)
+    cur_eqtl <- reactiveVal(NULL)
+    link_eqtl <- reactiveValues(genes = NULL, tissues = NULL)
     save_plotly <- reactiveValues(p = NULL)
     
     output$locus <- renderPlotly({
@@ -661,7 +678,46 @@ zoom <- function(data, ens_db,
           if (!inherits(loc2b, "try-error")) loc2 <- loc2b
         }
       }
-       
+      
+      # retrieve eQTL
+      isolate(cur_eqtl(loc1$index_snp))
+      pin2 <- eqtl_snp()
+      ld_msg <- NULL
+      eqtl_scheme <- NULL
+      if (!is.null(pin2) && (pin2 %in% loc1$data[, labs[1]] ||
+                            (man2 && pin2 %in% loc2$data[, labs[2]]))) {
+        message("LDlink eQTL")
+        loc1b <- try(suppressMessages(link_eqtl(loc1, token = ld_token)))
+        if (inherits(loc1b, "try-error")) {
+          ld_msg <- attr(loc1b, "condition")$message
+        } else loc1 <- loc1b
+        removeNotification("ld_busy")
+        if (is.null(loc1$LDexp)) {
+          showNotification(
+            paste0("eQTL request failed for ", pin2,
+                   if (is.null(ld_msg)) "" else paste0(" - ", ld_msg)),
+            type = "error", duration = 10)
+        }
+        LDX1 <- loc1$LDexp[loc1$LDexp$inData, ]
+        g <- unique(LDX1$Gene_Symbol[order(LDX1$P_value)])
+        tiss <- unique(LDX1$Tissue)
+        if (man2 && !is.null(pin2) && !is.null(loc1$LDexp)) {
+          loc2$index_snp <- pin2
+          loc2b <- try(link_eqtl(loc2, token = ld_token))
+          if (!inherits(loc2b, "try-error")) {
+            loc2 <- loc2b
+            LDX2 <- loc2$LDexp[loc2$LDexp$inData, ]
+            g <- union(g, LDX2$Gene_Symbol[order(LDX2$P_value)])
+            tiss <- union(tiss, LDX2$Tissue)
+            eqtl_scheme <- setNames(rainbow(length(g)), g)  # synchronise colours
+          }
+        }
+        link_eqtl$genes <- sort(g)
+        link_eqtl$tissues <- sort(tiss)
+      } else {
+        link_eqtl$genes <- NULL
+      }
+      
       loc$i <- loc1
       if (man2) locv2$i <- loc2
       
@@ -691,12 +747,15 @@ zoom <- function(data, ens_db,
         h <- if (!man2) c(364, 24 * needrow + 80) else c(305, 305, 20 * needrow + 40)
         maxrows <- NULL
       }
-      hideFeedback("tex")
+      shinyFeedback::hideFeedback("tex")
       p <- locus_plotly(loc1, h, filter_gene_biotype = biotype, pcutoff = pcutoff,
                    width = width, eqtl_gene = eqtl_gene, beta = beta,
                    add_hover = add_hover, scheme = locscheme, maxrows = maxrows,
                    loc2 = if (man2) loc2 else NULL,
-                   ylab = man_ylab)
+                   ylab = man_ylab,
+                   gene_filter = eqtl_gene_filter(),
+                   tissue_filter = eqtl_tissue_filter(),
+                   eqtl_scheme = eqtl_scheme)
       ntrace(length(p$x$data) -2)
       save_plotly$p <- p
       p
@@ -714,6 +773,47 @@ zoom <- function(data, ens_db,
     })
     
     outputOptions(output, "ui_genes", suspendWhenHidden = FALSE)
+    
+    output$ui_link_genes <- renderUI({
+      req(link_eqtl$genes)
+      fluidRow(column(12,
+        shinyWidgets::pickerInput("eqtl_gene_filter", h5("Select eQTL genes"),
+                    choices = link_eqtl$genes, selected = link_eqtl$genes,
+                    multiple = TRUE,
+                    options = shinyWidgets::pickerOptions(actionsBox = TRUE,
+                                            selectedTextFormat = 'count > 3')),
+        shinyWidgets::pickerInput("eqtl_tissue_filter", h5("Select eQTL tissues"),
+                    choices = link_eqtl$tissues, selected = link_eqtl$tissues,
+                    multiple = TRUE,
+                    options = shinyWidgets::pickerOptions(actionsBox = TRUE,
+                                            selectedTextFormat = 'count > 1'))
+      ))
+    })
+    
+    eqtl_gene_filter <- reactiveVal(NULL)
+    eqtl_tissue_filter <- reactiveVal(NULL)
+    
+    deb_gene_filter <- reactive({input$eqtl_gene_filter}) %>% debounce(500)
+    deb_tissue_filter <- reactive({input$eqtl_tissue_filter}) %>% debounce(500)
+    
+    # prevents ui update double trigger output$locus
+    observeEvent(deb_gene_filter(), {
+      i <- deb_gene_filter()
+      geneset <- link_eqtl$genes
+      req(i, geneset)
+      if (!identical(i, geneset)) {
+        eqtl_gene_filter(i)
+      } else eqtl_gene_filter(NULL)
+    })
+    
+    observeEvent(deb_tissue_filter(), {
+      i <- deb_tissue_filter()
+      tset <- link_eqtl$tissues
+      req(i, tset)
+      if (!identical(i, tset)) {
+        eqtl_tissue_filter(i)
+      } else eqtl_tissue_filter(NULL)
+    })
     
     observeEvent(input$left2, {
       dif <- diff(coords$xrange)
@@ -760,7 +860,7 @@ zoom <- function(data, ens_db,
     
     # parse text box
     observeEvent(c(input$text_go, input$enter), {
-      hideFeedback("tex")
+      shinyFeedback::hideFeedback("tex")
       req(input$tex)
       chr <- NULL
       tex <- input$tex
@@ -793,11 +893,11 @@ zoom <- function(data, ens_db,
           chr <- data[w[1], chrom[1]]
           xr <- data[w[1], pos[1]] + c(-5e5, 5e5)
         } else {
-          showFeedback("tex", "SNP not found")
+          shinyFeedback::showFeedback("tex", "SNP not found")
           return()
         }
       } else {
-        if (nchar(tex) > 1) showFeedback("tex", "not found")
+        if (nchar(tex) > 1) shinyFeedback::showFeedback("tex", "not found")
         return()
       }
       xr <- as.integer(pmax(xr, 0))
@@ -805,13 +905,13 @@ zoom <- function(data, ens_db,
       if (chr %in% chr_set[[1]]) {
         coords$chr <- chr
         if (any(is.na(xr))) {
-          showFeedback("tex", "invalid entry")
+          shinyFeedback::showFeedback("tex", "invalid entry")
           return()
         }
         coords$xrange <- xr
-        hideFeedback("tex")
+        shinyFeedback::hideFeedback("tex")
       } else {
-        showFeedback("tex", "not present")
+        shinyFeedback::showFeedback("tex", "not present")
       }
     })
     
@@ -819,7 +919,7 @@ zoom <- function(data, ens_db,
     output$table <- DT::renderDataTable({
       cols <- colnames(data)[sapply(data, class) == "numeric"]
       cols <- cols[!cols %in% c(chrom[1], pos[1])]
-      datatable(data) %>% formatSignif(cols, digits = 3)
+      DT::datatable(data) %>% DT::formatSignif(cols, digits = 3)
     })
     
     # detect change to x axis range
@@ -828,7 +928,7 @@ zoom <- function(data, ens_db,
       s <- event_data("plotly_relayout", source = "plotly_locus")
       req(c("xaxis.range[0]", "xaxis.range[1]") %in% names(s))
       xr <- c(s$`xaxis.range[0]`, s$`xaxis.range[1]`)
-      xd <- diff(xr) * (1 - 1/1.02) / 2
+      xd <- diff(xr) * 0.01 / 1.02
       xr <- xr + c(xd, -xd)
       coords$xrange <- as.integer(xr * 1e6)
     })
@@ -920,7 +1020,7 @@ zoom <- function(data, ens_db,
         chrom_range <- manhat$chrom_range[coords$chr, ]
         shapes <- list(
           list(type = "rect",
-               line = list(width = 1, color = "#00CD00"),
+               line = list(width = 1, color = scheme[4]),
                x0 = chrom_range[1],
                x1 = chrom_range[2], y0 = 0, y1 = 1,
                xref = "x", yref = "paper", layer = "above")
@@ -938,7 +1038,7 @@ zoom <- function(data, ens_db,
           chrom_range <- manhat2$chrom_range[coords$chr, ]
           shapes <- list(
             list(type = "rect",
-                 line = list(width = 1, color = "red"),
+                 line = list(width = 1, color = scheme2[4]),
                  x0 = chrom_range[1],
                  x1 = chrom_range[2], y0 = 0, y1 = 1,
                  xref = "x", yref = "paper", layer = "above")
@@ -959,7 +1059,7 @@ zoom <- function(data, ens_db,
         plotlyProxyInvoke("relayout",
                           list(shapes = list(
                             list(type = "rect",
-                                 line = list(width = 1, color = "#00CD00"),
+                                 line = list(width = 1, color = scheme[4]),
                                  x0 = coords$xrange[1] / 1e6,
                                  x1 = coords$xrange[2] / 1e6, y0 = 0, y1 = 1,
                                  xref = "x", yref = "paper", layer = "above")
@@ -970,15 +1070,13 @@ zoom <- function(data, ens_db,
           plotlyProxyInvoke("relayout",
                             list(shapes = list(
                               list(type = "rect",
-                                   line = list(width = 1, color = "red"),
+                                   line = list(width = 1, color = scheme2[4]),
                                    x0 = coords$xrange[1] / 1e6,
                                    x1 = coords$xrange[2] / 1e6, y0 = 0, y1 = 1,
                                    xref = "x", yref = "paper", layer = "above")
                             )))
       }
     })
-    
-    get_ld <- reactiveVal(FALSE)
     
     # retrieve LD
     observeEvent(input$ld_get, {
@@ -990,10 +1088,14 @@ zoom <- function(data, ens_db,
       showNotification(paste0("Fetching LD for ", snp, " - click a point to re-base"),
                        id = "ld_busy", duration = NULL)
       ld_snp(snp)
+      eqtl_snp(NULL)
     })
     
     observeEvent(input$ld_clear, {
       ld_snp(NULL)
+      eqtl_snp(NULL)
+      link_eqtl$genes <- NULL
+      link_eqtl$tissues <- NULL
       removeNotification("ld_busy")
     })
     
@@ -1012,12 +1114,34 @@ zoom <- function(data, ens_db,
     })
     
     output$ld_status <- renderText({
-      if (man2) {
-        req(ld_snp() %in% c(loc$i$data[, labs[1]], locv2$i$data[, labs[2]]))
+      if (!is.null(ld_snp())) {
+        if (man2) {
+          req(ld_snp() %in% c(loc$i$data[, labs[1]], locv2$i$data[, labs[2]]))
+        } else {
+          req(ld_snp() %in% loc$i$data[, labs])
+        }
+        paste0("LD: ", ld_snp(), " (", ld_pop, ")")
       } else {
-        req(ld_snp() %in% loc$i$data[, labs])
+        if (man2) {
+          req(eqtl_snp() %in% c(loc$i$data[, labs[1]], locv2$i$data[, labs[2]]))
+        } else {
+          req(eqtl_snp() %in% loc$i$data[, labs])
+        }
+        "eQTL overlay"
       }
-      paste0("LD: ", ld_snp(), " (", ld_pop, ")")
+    })
+    
+    # retrieve eQTL
+    observeEvent(input$eqtl_get, {
+      snp <- cur_eqtl()
+      if (is.null(snp) || is.na(snp)) {
+        showNotification("No index SNP in view", type = "warning")
+        return()
+      }
+      showNotification(paste0("Fetching eQTL data"),
+                       id = "ld_busy", duration = NULL)
+      eqtl_snp(snp)
+      ld_snp(NULL)
     })
     
     # inline conditional UI

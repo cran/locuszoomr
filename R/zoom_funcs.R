@@ -13,7 +13,6 @@ manhattan <- function(data,
   p <- dc$p
   labs <- dc$labs
   
-  data$logP <- -log10(data[, p])
   chrom_list <- as.character(mixedsort(unique(data[, chrom]), na.last = NA))
   data[, chrom] <- factor(data[, chrom], levels = chrom_list)
   
@@ -39,7 +38,7 @@ manhattan <- function(data,
   }
   
   # thin points
-  if (!is.na(npoints) & nrow(data) > npoints) {
+  if (!is.na(npoints) && nrow(data) > npoints) {
     index <- order(data[, p])
     if (npoints <= 1e5) {
       data <- data[index[seq_len(npoints)], ]
@@ -69,6 +68,7 @@ manhattan <- function(data,
                           ncol = 2, dimnames = list(chrom_list, NULL))
   }
   
+  data$logP <- -log10(data[, p])
   yrange <- range(data$logP, na.rm = TRUE)
   
   ret <- list(data = data, xticks = xticks, chrom_range = chrom_range,
@@ -255,6 +255,19 @@ align_manhats <- function(x) {
   chrom_lim <- align_chrom_lim(x)
   manhats <- lapply(x, realign_manhat, chrom_lim)
   list(manhats = manhats, chrom_lim = chrom_lim, man_lim = man_lim(manhats))
+}
+
+
+# Find minimum p-value per SNP/gene in eQTL results
+# @param res Dataframe of LDlink eQTL output
+# @param col Column e.g. SNP or gene
+# @return Dataframe containing the minimum p-value for each SNP/gene 
+
+min_p_by_col <- function(res, col) {
+  ord <- order(res$P_value)
+  res_col <- res[ord, col]
+  dup <- duplicated(res_col)
+  res[ord[!dup], ]
 }
 
 

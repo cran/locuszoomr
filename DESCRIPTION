@@ -1,6 +1,6 @@
 Package: locuszoomr
 Title: Gene Locus Plot with Gene Annotations
-Version: 1.1.0
+Version: 1.2.0
 Authors@R: 
     c(person(given = "Myles",family = "Lewis",
     role = c("aut", "cre"),
@@ -17,20 +17,20 @@ License: GPL (>= 3)
 Encoding: UTF-8
 Depends: R (>= 3.5)
 biocViews:
-Imports: AnnotationFilter, BiocGenerics, cowplot, dplyr, DT, ensembldb,
-        GenomeInfoDb, GenomicRanges, gggrid, ggplot2, ggrepel,
-        graphics, grDevices, grid, gtools, htmltools, IRanges, LDlinkR,
-        memoise, plotly, Rcpp, rlang, rtracklayer, shiny,
-        shinycssloaders, shinyFeedback, shinyWidgets, zoo
+Imports: AnnotationFilter, BiocGenerics, cowplot, ensembldb,
+        GenomeInfoDb, GenomicRanges, gggrid, ggplot2, graphics,
+        grDevices, grid, gtools, htmltools, IRanges, LDlinkR, memoise,
+        plotly, Rcpp, rlang, rtracklayer, shiny
 LinkingTo: Rcpp
-Suggests: AnnotationDbi, AnnotationHub, EnsDb.Hsapiens.v75, knitr,
-        org.Hs.eg.db, rmarkdown
+Suggests: AnnotationDbi, AnnotationHub, dplyr, DT, EnsDb.Hsapiens.v75,
+        ggrepel, knitr, org.Hs.eg.db, rmarkdown, shinycssloaders,
+        shinyFeedback, shinyWidgets, zoo
 VignetteBuilder: knitr
 Config/roxygen2/version: 8.1.0
 NeedsCompilation: yes
-Packaged: 2026-09-17 16:30:09 UTC; hhx107
+Packaged: 2026-10-09 13:07:29 UTC; hhx107
 Author: Myles Lewis [aut, cre] (ORCID: <https://orcid.org/0000-0001-9365-5345>),
   Tom Willis [ctb]
 Maintainer: Myles Lewis <myles.lewis@qmul.ac.uk>
 Repository: CRAN
-Date/Publication: 2026-09-17 17:40:02 UTC
+Date/Publication: 2026-10-09 13:40:02 UTC

@@ -33,31 +33,31 @@ locus_plot(loc)
 # library(AnnotationHub)
 # ah <- AnnotationHub()
 # query(ah, c("EnsDb", "Homo sapiens"))
-# ## AnnotationHub with 25 records
-# ## # snapshotDate(): 2023-04-25
-# ## # $dataprovider: Ensembl
-# ## # $species: Homo sapiens
-# ## # $rdataclass: EnsDb
-# ## # additional mcols(): taxonomyid, genome, description, coordinate_1_based, maintainer,
-# ## #   rdatadateadded, preparerclass, tags, rdatapath, sourceurl, sourcetype
-# ## # retrieve records with, e.g., 'object[["AH53211"]]'
-# ##
-# ##              title
-# ##   AH53211  | Ensembl 87 EnsDb for Homo Sapiens
-# ##   ...        ...
-# ##   AH100643 | Ensembl 106 EnsDb for Homo sapiens
-# ##   AH104864 | Ensembl 107 EnsDb for Homo sapiens
-# ##   AH109336 | Ensembl 108 EnsDb for Homo sapiens
-# ##   AH109606 | Ensembl 109 EnsDb for Homo sapiens
-# ##   AH113665 | Ensembl 110 EnsDb for Homo sapiens
+# # AnnotationHub with 28 records
+# # # snapshotDate(): 2026-04-23
+# # # $dataprovider: Ensembl
+# # # $species: Homo sapiens
+# # # $rdataclass: EnsDb
+# # # additional mcols(): taxonomyid, genome, description, coordinate_1_based, maintainer,
+# # #   rdatadateadded, preparerclass, tags, rdatapath, sourceurl, sourcetype
+# # # retrieve records with, e.g., 'object[["AH53211"]]'
+# #
+# #              title
+# #   AH53211  | Ensembl 87 EnsDb for Homo Sapiens
+# #   ...        ...
+# #   AH109606 | Ensembl 109 EnsDb for Homo sapiens
+# #   AH113665 | Ensembl 110 EnsDb for Homo sapiens
+# #   AH116291 | Ensembl 111 EnsDb for Homo sapiens
+# #   AH116860 | Ensembl 112 EnsDb for Homo sapiens
+# #   AH119325 | Ensembl 113 EnsDb for Homo sapiens
 
 ## ----eval=FALSE---------------------------------------------------------------
-# ensDb_v106 <- ah[["AH100643"]]
+# ensDb_v113 <- ah[["AH119325"]]
 # 
 # # built-in mini dataset
 # data("SLE_gwas_sub")
 # loc <- locus(data = SLE_gwas_sub, gene = 'UBE2L3', fix_window = 1e6,
-#              ens_db = ensDb_v106)
+#              ens_db = ensDb_v113)
 # locus_plot(loc)
 
 ## ----eval=FALSE---------------------------------------------------------------

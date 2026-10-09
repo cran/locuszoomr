@@ -25,18 +25,21 @@ knitr::include_graphics("zoom1.png")
 ## ----out.width='100%', echo=FALSE---------------------------------------------
 knitr::include_graphics("zoom2.png")
 
+## ----out.width='100%', echo=FALSE---------------------------------------------
+knitr::include_graphics("zoom_eqtl.png")
+
 ## ----eval=FALSE---------------------------------------------------------------
-# # load ensembl Homo sapiens database v110
+# # load ensembl Homo sapiens database v113
 # library(AnnotationHub)
 # ah <- AnnotationHub()
 # query(ah, c("EnsDb", "Homo sapiens"))  # shows latest versions
-# ensDb_v110 <- ah[["AH113665"]]
+# ensDb_v113 <- ah[["AH119325"]]
 # 
 # # load hg38 recombination rate data downloaded from UCSC
 # recomb1000G <- import.bw("/../recomb1000GAvg.bw")
 # 
 # # double GWAS, eQTL first
-# zoom(eqtlres, data2 = RA_gwas, ens_db = ensDb_v110,
+# zoom(eqtlres, data2 = RA_gwas, ens_db = ensDb_v113,
 #      eqtl_gene = "gene", beta = c("beta", NA),
 #      recomb = recomb1000G, ld_token = "my_token")
 
